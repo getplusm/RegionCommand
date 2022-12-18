@@ -1,5 +1,6 @@
 package t.me.p1azmer.plugin.regioncommand.listener;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,7 +54,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
                 ActiveRegion activeRegion = region.getActiveRegion();
                 EventAction eventAction = activeRegion.getEventActionByEvent(MOVE);
                 if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                         JPermission permission = eventAction.getPermission();
                         if (permission != null && !player.hasPermission(permission)) {
                             plugin.getMessage(Lang.Permission_Event_Move).send(player);
@@ -115,7 +116,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
                 ActiveRegion activeRegion = region.getActiveRegion();
                 EventAction eventAction = activeRegion.getEventActionByEvent(BLOCK_PLACE);
                 if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                         JPermission permission = eventAction.getPermission();
                         if (permission != null && !player.hasPermission(permission)) {
                             plugin.getMessage(Lang.Permission_Event_Place).send(player);
@@ -182,7 +183,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                 EventAction eventAction = activeRegion.getEventActionByEvent(BLOCK_BREAK);
                 if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                         JPermission permission = eventAction.getPermission();
                         if (permission != null && !player.hasPermission(permission)) {
                             plugin.getMessage(Lang.Permission_Event_Break).send(player);
@@ -243,7 +244,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
             EventAction eventAction = activeRegion.getEventActionByEvent(ENTER);
             if (eventAction != null) {
-                if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                     JPermission permission = eventAction.getPermission();
                     if (permission != null && !player.hasPermission(permission)) {
                         plugin.getMessage(Lang.Permission_Event_Enter).send(player);
@@ -302,7 +303,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
             EventAction eventAction = activeRegion.getEventActionByEvent(LEAVE);
             if (eventAction != null) {
-                if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                     JPermission permission = eventAction.getPermission();
                     if (permission != null && !player.hasPermission(permission)) {
                         plugin.getMessage(Lang.Permission_Event_Leave).send(player);
@@ -375,7 +376,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                         EventAction eventAction = activeRegion.getEventActionByEvent(LMB);
                         if (eventAction != null) {
-                            if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                                 JPermission permission = eventAction.getPermission();
                                 if (permission != null && !player.hasPermission(permission)) {
                                     plugin.getMessage(Lang.Permission_Event_LMB).send(player);
@@ -441,7 +442,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                         EventAction eventAction = activeRegion.getEventActionByEvent(RMB);
                         if (eventAction != null) {
-                            if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                                 JPermission permission = eventAction.getPermission();
                                 if (permission != null && !player.hasPermission(permission)) {
                                     plugin.getMessage(Lang.Permission_Event_RMB).send(player);
@@ -510,7 +511,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                 EventAction eventAction = activeRegion.getEventActionByEvent(SHIFT);
                 if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                         JPermission permission = eventAction.getPermission();
                         if (permission != null && !player.hasPermission(permission)) {
                             plugin.getMessage(Lang.Permission_Event_Shift).send(player);
@@ -576,7 +577,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                     EventAction eventAction = activeRegion.getEventActionByEvent(JUMP);
                     if (eventAction != null) {
-                        if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                             JPermission permission = eventAction.getPermission();
                             if (permission != null && !player.hasPermission(permission)) {
                                 plugin.getMessage(Lang.Permission_Event_Jump).send(player);
@@ -644,7 +645,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
 
                 EventAction eventAction = activeRegion.getEventActionByEvent(COMMANDS);
                 if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS)) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                         JPermission permission = eventAction.getPermission();
                         if (permission != null && !player.hasPermission(permission)) {
                             plugin.getMessage(Lang.Permission_Event_Commands).send(player);
@@ -710,7 +711,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterCuboidEvent(player, toRegion.getCuboid()));
             PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, toRegion));
             if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
                 return;
             }
@@ -718,7 +719,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveCuboidEvent(player, fromRegion.getCuboid()));
             PlayerLeaveRegionEvent playerLeaveRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveRegionEvent(player, fromRegion));
             if (playerLeaveCuboidEvent.isCancelled() || playerLeaveRegionEvent.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
                 return;
             }
@@ -727,7 +728,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerMoveInRegionEvent toMove = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, fromRegion));
             PlayerMoveInRegionEvent fromMove = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, toRegion));
             if (toMove.isCancelled() || fromMove.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
             }
         }
@@ -742,7 +743,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
         ActiveRegion activeRegion = region.getActiveRegion();
         EventAction eventAction = activeRegion.getEventActionByEvent(Events.ENTER);
         if (eventAction != null) {
-            if (!player.hasPermission(Perm.REGION_BYPASS))
+            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                 if (eventAction.getPermission() != null && !player.hasPermission(eventAction.getPermission())) {
                     event.setCancelled(true);
                 }
@@ -764,7 +765,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterCuboidEvent(player, toRegion.getCuboid()));
             PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, toRegion));
             if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
                 player.sendMessage("player teleport cancelled 1");
                 return;
@@ -773,7 +774,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveCuboidEvent(player, fromRegion.getCuboid()));
             PlayerLeaveRegionEvent playerLeaveRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveRegionEvent(player, fromRegion));
             if (playerLeaveCuboidEvent.isCancelled() || playerLeaveRegionEvent.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
                 player.sendMessage("player teleport cancelled 2");
                 return;
@@ -783,7 +784,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
             PlayerMoveInRegionEvent toMove = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, fromRegion));
             PlayerMoveInRegionEvent fromMove = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, toRegion));
             if (toMove.isCancelled() || fromMove.isCancelled()) {
-                if (!player.hasPermission(Perm.REGION_BYPASS))
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                     event.setCancelled(true);
                 player.sendMessage("player teleport cancelled 3");
             }
@@ -813,9 +814,9 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
         Region region = manager.getRegion(location);
         if (region != null) {
             PlayerEnterRegionEvent enterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, region));
-            if (enterRegionEvent.isCancelled()) {
-                PlayerUtil.dispatchCommand(player, "[PLAYER] spawn");
-                player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-LOGIN_EVENT_SAFE_REGION-" + region.getName()));
+            if (enterRegionEvent.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                PlayerUtil.dispatchCommand(player, "spawn");
+                player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-LOGIN_EVENT_SAFE_REGION-" + region.getId()));
             }
         }
     }
@@ -832,9 +833,9 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
         if (fromRegion != null && toRegion != null) {
             PlayerMoveInRegionEvent moveFrom = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, fromRegion));
             PlayerMoveInRegionEvent moveTo = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, toRegion));
-            if (moveFrom.isCancelled() && moveTo.isCancelled() || event.isCancelled()) {
-                PlayerUtil.dispatchCommand(player, "[PLAYER] spawn");
-                player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-MOVE_EVENT_SAFE_REGION-" + toRegion.getName()));
+            if (moveFrom.isCancelled() && moveTo.isCancelled() || event.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                PlayerUtil.dispatchCommand(player, "spawn");
+                player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-MOVE_EVENT_SAFE_REGION-" + toRegion.getId()));
             }
         }
     }
