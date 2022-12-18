@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id("maven-publish")
 }
 
 group = 'plazmer'
@@ -15,15 +16,49 @@ repositories {
         name = 'sonatype'
         url = 'https://oss.sonatype.org/content/groups/public/'
     }
+    maven {
+        url = 'https://github.com/getplusm/rpgcore'
+        credentials {
+            username 'getplusm'
+            password 'AOIMD2o8aiund2a'
+        }
+    }
+
+    maven {
+        url = uri("https://maven.pkg.github.com/getplusm/RegionCommand")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("getplusm")
+            password = project.findProperty("gpr.key") ?: System.getenv("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")
+        }
+    }
 }
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT'
 
+
     compileOnly files('E:/TEST/1st AVES/plugins/PLAZMER-API-1.0.jar')
     compileOnly files('E:/TEST/1st AVES/plugins/service-1.0.jar')
     compileOnly files('E:/TEST/1st AVES/plugins/Titles-1.0.jar')
     compileOnly files('E:/TEST/1st AVES/plugins/PLAZMER-ENGINE-1.0.jar')
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/getplusm/RegionCommand")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("getplusm")
+                password = project.findProperty("gpr.key") ?: System.getenv("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")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
 }
 
 def targetJavaVersion = 17
