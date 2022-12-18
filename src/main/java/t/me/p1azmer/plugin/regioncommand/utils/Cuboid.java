@@ -47,34 +47,21 @@ public class Cuboid implements IPlaceholder {
     }
 
     public void setFirst(Location point1) {
-        this.xMin = Math.min(point1.getBlockX(), getPoint2().getBlockX());
-        this.xMax = Math.max(point1.getBlockX(), getPoint2().getBlockX());
-        this.yMin = Math.min(point1.getBlockY(), getPoint2().getBlockY());
-        this.yMax = Math.max(point1.getBlockY(), getPoint2().getBlockY());
-        this.zMin = Math.min(point1.getBlockZ(), getPoint2().getBlockZ());
-        this.zMax = Math.max(point1.getBlockZ(), getPoint2().getBlockZ());
+        this.xMin = point1.getBlockX();
+        this.yMin = point1.getBlockY();
+        this.zMin = point1.getBlockZ();
         this.world = point1.getWorld();
         this.xMinCentered = this.xMin + 0.5;
-        this.xMaxCentered = this.xMax + 0.5;
         this.yMinCentered = this.yMin + 0.5;
-        this.yMaxCentered = this.yMax + 0.5;
         this.zMinCentered = this.zMin + 0.5;
-        this.zMaxCentered = this.zMax + 0.5;
     }
 
     public void setSecond(Location point2) {
-        this.xMin = Math.min(getPoint1().getBlockX(), point2.getBlockX());
-        this.xMax = Math.max(getPoint1().getBlockX(), point2.getBlockX());
-        this.yMin = Math.min(getPoint1().getBlockY(), point2.getBlockY());
-        this.yMax = Math.max(getPoint1().getBlockY(), point2.getBlockY());
-        this.zMin = Math.min(getPoint1().getBlockZ(), point2.getBlockZ());
-        this.zMax = Math.max(getPoint1().getBlockZ(), point2.getBlockZ());
-        this.world = getPoint1().getWorld();
-        this.xMinCentered = this.xMin + 0.5;
+        this.xMax = point2.getBlockX();
+        this.yMax = point2.getBlockY();
+        this.zMax = point2.getBlockZ();
         this.xMaxCentered = this.xMax + 0.5;
-        this.yMinCentered = this.yMin + 0.5;
         this.yMaxCentered = this.yMax + 0.5;
-        this.zMinCentered = this.zMin + 0.5;
         this.zMaxCentered = this.zMax + 0.5;
     }
 

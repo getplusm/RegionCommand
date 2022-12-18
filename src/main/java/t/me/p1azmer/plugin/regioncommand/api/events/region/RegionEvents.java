@@ -16,6 +16,7 @@ public abstract class RegionEvents extends Event implements Cancellable {
     protected boolean cancelled;
 
     public RegionEvents(Player player, Region region){
+
         this.player = player;
         this.region = region;
     }

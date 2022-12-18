@@ -46,7 +46,7 @@ dependencies {
 publishing {
     repositories {
         maven {
-            name = "GitHubPackages"
+            name = "RegionCommand"
             url = uri("https://maven.pkg.github.com/getplusm/RegionCommand")
             credentials {
                 username = project.findProperty("gpr.user") ?: System.getenv("getplusm")
@@ -88,3 +88,4 @@ processResources {
 jar {
     destinationDirectory.set(file("E:/TEST/1st AVES/plugins/"))
 }
+//assemble.dependsOn(publish)

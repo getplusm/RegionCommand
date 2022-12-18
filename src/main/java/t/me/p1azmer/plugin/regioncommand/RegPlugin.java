@@ -11,7 +11,9 @@ import t.me.p1azmer.plugin.regioncommand.data.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorHub;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
-import t.me.p1azmer.plugin.regioncommand.utils.action.CancelledEventAction;
+import t.me.p1azmer.plugin.regioncommand.utils.action.condition.TimerCooldownCondition;
+import t.me.p1azmer.plugin.regioncommand.utils.action.executors.CancelledEventAction;
+import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
 
 public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolder<RegPlugin, EditorType> {
 
@@ -31,6 +33,9 @@ public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolde
 
 
         this.getActionsManager().registerActionExecutor(new CancelledEventAction());
+        this.getActionsManager().registerActionExecutor(new TimerEventAction());
+
+        this.getActionsManager().registerConditionValidator(new TimerCooldownCondition());
     }
 
     @Override

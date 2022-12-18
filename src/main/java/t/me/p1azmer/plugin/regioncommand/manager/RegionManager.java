@@ -71,7 +71,11 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
     public Region getRegion(Location location) {
         if (location == null) return null;
-        return this.regions.values().stream().filter(f -> f.getCuboid().isIn(location)).findFirst().orElse(null);
+        return this.regions.values().stream().filter(f -> {
+            if (f.getActiveRegion().getRadius() > 0)
+                return f.getCuboid().isInWithMarge(location, f.getActiveRegion().getRadius());
+            return f.getCuboid().isIn(location);
+        }).findFirst().orElse(null);
     }
 
     public Region getRegion(Location location, double marge) {
@@ -80,7 +84,11 @@ public class RegionManager extends AbstractManager<RegPlugin> {
     }
 
     public Region getRegion(Player player) {
-        return this.regions.values().stream().filter(f -> f.getCuboid().isIn(player)).findFirst().orElse(null);
+        return this.regions.values().stream().filter(f -> {
+            if (f.getActiveRegion().getRadius() > 0)
+                return f.getCuboid().isInWithMarge(player.getLocation(), f.getActiveRegion().getRadius());
+            return f.getCuboid().isIn(player.getLocation());
+        }).findFirst().orElse(null);
     }
 
     public boolean inRegion(Location location) {

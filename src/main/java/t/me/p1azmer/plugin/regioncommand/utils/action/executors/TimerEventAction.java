@@ -1,19 +1,25 @@
-package t.me.p1azmer.plugin.regioncommand.utils.action;
+package t.me.p1azmer.plugin.regioncommand.utils.action.executors;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import t.me.p1azmer.api.util.Cooldown;
 import t.me.p1azmer.aves.engine.actions.action.AbstractActionExecutor;
 import t.me.p1azmer.aves.engine.actions.parameter.ParameterId;
 import t.me.p1azmer.aves.engine.actions.parameter.ParameterResult;
+import t.me.p1azmer.aves.engine.actions.parameter.value.ParameterValueNumber;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
 
-public class CancelledEventAction extends AbstractActionExecutor {
-    public CancelledEventAction() {
-        super("REGION_COMMAND_BLOCK_EVENT");
-        this.registerParameter(ParameterId.NAME);
+public class TimerEventAction extends AbstractActionExecutor {
+
+    public static String COOLDOWN_KEY = "REGION_COMMAND_TIMER";
+
+    public TimerEventAction() {
+        super("REGION_COMMAND_TIMER");
+        registerParameter(ParameterId.NAME);
+        registerParameter(ParameterId.AMOUNT);
     }
 
     @Override
@@ -22,6 +28,13 @@ public class CancelledEventAction extends AbstractActionExecutor {
         if (name == null) {
             return;
         }
+
+        ParameterValueNumber time = (ParameterValueNumber) result.getValue(ParameterId.AMOUNT);
+        if (time == null) return;
+
+        long timeValue = (long) time.getValue(0D);
+        if (timeValue <= 0L) return;
+
         Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
         if (events == null) {
             return;
@@ -30,6 +43,8 @@ public class CancelledEventAction extends AbstractActionExecutor {
         if (region == null) {
             return;
         }
-        events.cancelledCustomEvent(player, region, true);
+        if (!Cooldown.hasCooldown(player, COOLDOWN_KEY + "_" + name.toUpperCase())) {
+            Cooldown.hasOrAddCooldown(player, COOLDOWN_KEY + "_" + name.toUpperCase(), timeValue * 20L);
+        }
     }
 }

@@ -16,6 +16,7 @@ public abstract class CuboidEvents extends Event implements Cancellable {
     protected boolean cancelled;
 
     public CuboidEvents(Player player, Cuboid cuboid){
+
         this.player = player;
         this.cuboid = cuboid;
     }

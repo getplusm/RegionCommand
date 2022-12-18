@@ -15,11 +15,16 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
+import t.me.p1azmer.aves.engine.utils.collections.AutoRemovalCollection;
+import t.me.p1azmer.aves.engine.utils.collections.AutoRemovalMap;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.*;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public enum Events {
 
@@ -50,6 +55,8 @@ public enum Events {
     public String getName(RegPlugin plugin) {
         return plugin.getLangManager().getEnum(this);
     }
+
+    public Collection<Player> cancelledEvents = AutoRemovalCollection.newHashSet(20, TimeUnit.MILLISECONDS);;
 
     @NotNull
     public RegionEvents getCustomEvent(Player player, Region region) {
@@ -84,16 +91,19 @@ public enum Events {
     }
 
     public boolean cancelledCustomEvent(Player player, Region region, boolean cancel) {
+        if (this.cancelledEvents == null)
+            this.cancelledEvents = AutoRemovalCollection.newHashSet(20, TimeUnit.MILLISECONDS);
         RegionEvents event = t.me.p1azmer.api.Events.callSyncAndJoin(getCustomEvent(player, region));
-        event.setCancelled(cancel);
-        Event originalEvent = t.me.p1azmer.api.Events.callSyncAndJoin(getOriginalEvent(player, player.getLocation(), player.getLocation()));
-        if (originalEvent instanceof Cancellable cancellable) {
-            cancellable.setCancelled(cancel);
-            player.sendMessage("ORIGINAL EVENT IS CANCELLED: " + (cancellable.isCancelled() ? "yues" : " nope"));
+        if (this.cancelledEvents.add(player)) {
+            event.setCancelled(cancel);
+            Event originalEvent = t.me.p1azmer.api.Events.callSyncAndJoin(getOriginalEvent(player, player.getLocation(), player.getLocation()));
+            if (originalEvent instanceof Cancellable cancellable) {
+                cancellable.setCancelled(cancel);
+                return event.isCancelled();
+            }
             return event.isCancelled();
         }
-        player.sendMessage("CUSTOM EVENT IS CANCELLED: " + (event.isCancelled() ? "yues" : " nope"));
-        return event.isCancelled();
+        return false;
     }
 
 }

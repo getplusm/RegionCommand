@@ -128,13 +128,20 @@ public class ActiveRegion implements IPlaceholder, IEditable {
         this.getEventActions().forEach(eventAction -> {
             String id = eventAction.getEvents().name();
             path.append(id).append(".");
-            this.config.set(path + "Permission", eventAction.getPermission() == null ? null : eventAction.getPermission().getName());
-            this.config.set(path + "Cooldown.Time", eventAction.getCooldown());
-            this.config.set(path + "Cooldown.Message", eventAction.getLangKey().getDefaultText());
-            for (ActionSection section : eventAction.getManipulator().getActions().values()) {
-                this.config.set(path + "Action.Conditions.List", section.getConditions());
-                this.config.set(path + "Action.Conditions.Fail_Actions", section.getConditionFailActions());
-                this.config.set(path + "Action.Action_Executors", section.getActionExecutors());
+            if (eventAction.getPermission() != null) {
+                this.config.set(path + "Permission", eventAction.getPermission().getName());
+            } else if (this.config.contains(path + "Permission"))
+                this.config.remove(path + "Permission");
+            if (eventAction.getLangKey() != null) {
+                this.config.set(path + "Cooldown.Message", eventAction.getLangKey().getDefaultText());
+            } else if (this.config.contains(path + "Cooldown.Message"))
+                this.config.remove(path + "Cooldown.Message");
+            if (eventAction.getManipulator() != null) {
+                for (ActionSection section : eventAction.getManipulator().getActions().values()) {
+                    this.config.set(path + "Action.Conditions.List", section.getConditions());
+                    this.config.set(path + "Action.Conditions.Fail_Actions", section.getConditionFailActions());
+                    this.config.set(path + "Action.Action_Executors", section.getActionExecutors());
+                }
             }
 
         });
