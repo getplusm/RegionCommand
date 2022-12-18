@@ -1,0 +1,57 @@
+Name: "&6Задания в зиме"
+Cuboid:
+  First: '-6.5,117,-61.5,0,0,winterwarzone'
+  Second: '-6.5,117,-61.5,0,0,winterwarzone'
+Active:
+  # Радиус действия. -1, чтобы активировать только в территории кубоида
+  Radius: -1
+
+  # Различные задержки (всё в секундах) -1, чтобы отменить
+  Cooldown:
+    # КД на вход в кубоид
+    Enter: 30
+    # При входе в кубоид, игрок не сможет выйти из него, пока не пройдет это время
+    Leave: 10
+
+  # Триггер ивенты внутри кубоида.
+  # Доступные:
+  # ENTER - Действие при входе
+  # LEAVE - Действие при выходе
+  # INSIDE - Действие внутри
+  # JUMP - Прыжок
+  # MOVE - Движение
+  # SHIFT - Шифт
+  # LMB, RMB - Клики
+  # COMMANDS - Использование команды
+  # BLOCK_PLACE - Постановка блока
+  # BLOCK_BREAK - Ломание блока
+  #
+  Events:
+    JUMP:
+      # Отменить действие
+      Canceled: true
+      # Право доступа к ивенту
+      Permission: "regioncommands.events.jump"
+      # Задержка на это действие. Если игрок прыгнул, то через 30 секунд сработает это действие
+      Cooldown:
+        Time: 30
+        Message:
+          - "{message: ~prefix: false;}&cДанное действие невозможно выполнять так часто!"
+          - "&cОхладись и ожидай еще %time% %time_correct%"
+      # Это действие ивента
+      Action:
+        default:
+          # Это условия действия ивента
+          Conditions:
+            # Список условий
+            List:
+              - '[PLAYER_VAULT_BALANCE] ~amount: <100; ~target: self;'
+            # Не выполнение условия
+            Fail_Actions: "no_value"
+          # Выполнение действия
+          Action_Executors:
+            - '[MESSAGE] ~message: &cВаш баланс меньше 100 монет!; ~target: self;'
+        no_value:
+          Conditions: { }
+          Action_Executors:
+            - '[MESSAGE] ~message: You dont have permissions!;'

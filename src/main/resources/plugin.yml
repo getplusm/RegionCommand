@@ -1,0 +1,8 @@
+name: RegionCommand
+version: '${version}'
+main: t.me.p1azmer.plugin.regioncommand.RegPlugin
+api-version: 1.18
+authors: [ plazmer ]
+depend:
+  - PLAZMER-API
+  - PLAZMER-ENGINE
