@@ -7,6 +7,7 @@ import t.me.p1azmer.aves.engine.api.config.JYML;
 import t.me.p1azmer.aves.engine.api.manager.AbstractManager;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
+import t.me.p1azmer.plugin.regioncommand.listener.DetectListener;
 import t.me.p1azmer.plugin.regioncommand.listener.PlayerListener;
 
 import java.util.HashMap;
@@ -17,6 +18,7 @@ public class RegionManager extends AbstractManager<RegPlugin> {
     public Map<String, Region> regions;
 
     private PlayerListener playerListener;
+    private DetectListener detectListener;
 
     public RegionManager(@NotNull RegPlugin plugin) {
         super(plugin);
@@ -24,6 +26,9 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
     @Override
     protected void onLoad() {
+        this.detectListener = new DetectListener(this);
+        this.detectListener.registerListeners();
+
         this.playerListener = new PlayerListener(this);
         this.playerListener.registerListeners();
 
@@ -56,6 +61,10 @@ public class RegionManager extends AbstractManager<RegPlugin> {
             this.playerListener.unregisterListeners();
             this.playerListener = null;
         }
+        if (this.detectListener != null) {
+            this.detectListener.unregisterListeners();
+            this.detectListener = null;
+        }
     }
 
     public void removeRegion(Region region) {
@@ -71,24 +80,41 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
     public Region getRegion(Location location) {
         if (location == null) return null;
-        return this.regions.values().stream().filter(f -> {
+        return this.regions
+                .values()
+                .stream()
+                .filter(f -> {
             if (f.getActiveRegion().getRadius() > 0)
                 return f.getCuboid().isInWithMarge(location, f.getActiveRegion().getRadius());
             return f.getCuboid().isIn(location);
-        }).findFirst().orElse(null);
+        })
+                .findFirst()
+                .orElse(null);
     }
 
     public Region getRegion(Location location, double marge) {
         if (location == null || marge < 0) return null;
-        return this.regions.values().stream().filter(f -> f.getCuboid().isInWithMarge(location, marge)).findFirst().orElse(null);
+        return this.regions
+                .values()
+                .stream()
+                .filter(f ->
+                        this.getRegion(location) != null
+                                || f.getCuboid().isInWithMarge(location, marge))
+                .findFirst()
+                .orElse(null);
     }
 
     public Region getRegion(Player player) {
-        return this.regions.values().stream().filter(f -> {
+        return this.regions
+                .values()
+                .stream()
+                .filter(f -> {
             if (f.getActiveRegion().getRadius() > 0)
                 return f.getCuboid().isInWithMarge(player.getLocation(), f.getActiveRegion().getRadius());
             return f.getCuboid().isIn(player.getLocation());
-        }).findFirst().orElse(null);
+        })
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean inRegion(Location location) {

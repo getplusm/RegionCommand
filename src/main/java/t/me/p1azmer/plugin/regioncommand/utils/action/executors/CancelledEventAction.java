@@ -1,5 +1,6 @@
 package t.me.p1azmer.plugin.regioncommand.utils.action.executors;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.actions.action.AbstractActionExecutor;
@@ -20,14 +21,20 @@ public class CancelledEventAction extends AbstractActionExecutor {
     protected void execute(@NotNull Player player, @NotNull ParameterResult result) {
         String name = (String) result.getValue(ParameterId.NAME);
         if (name == null) {
+            player.sendMessage("region command block event returned but name is null!");
             return;
         }
         Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
         if (events == null) {
+            player.sendMessage("region command block event returned but events is null!");
             return;
         }
-        Region region = RegionAPI.PLUGIN.getManager().getRegion(player.getLocation(), 1);
+
+        Location location = player.getLocation();
+
+        Region region = RegionAPI.PLUGIN.getManager().getRegion(location, 100);
         if (region == null) {
+            player.sendMessage("region command block event returned but region is null!");
             return;
         }
         events.cancelledCustomEvent(player, region, true);

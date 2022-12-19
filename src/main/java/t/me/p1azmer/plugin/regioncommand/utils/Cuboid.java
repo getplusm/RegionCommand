@@ -132,15 +132,20 @@ public class Cuboid implements IPlaceholder {
     }
 
     public boolean isInWithMarge(final Location loc, final double marge) {
-        return loc.getWorld() == this.world && loc.getX() >= this.xMinCentered - marge && loc.getX() <= this.xMaxCentered + marge && loc.getY() >= this.yMinCentered - marge && loc
-                .getY() <= this.yMaxCentered + marge && loc.getZ() >= this.zMinCentered - marge && loc.getZ() <= this.zMaxCentered + marge;
+        return loc.getWorld() == this.world &&
+                loc.getX() >= this.xMinCentered - marge &&
+                loc.getX() <= this.xMaxCentered + marge &&
+                loc.getY() >= this.yMinCentered - marge &&
+                loc.getY() <= this.yMaxCentered + marge &&
+                loc.getZ() >= this.zMinCentered - marge &&
+                loc.getZ() <= this.zMaxCentered + marge;
     }
 
     @Override
     public @NotNull UnaryOperator<String> replacePlaceholders() {
         return s -> s
-                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_FIRST, "&6Мир: " + this.world.getName() + ", X="+this.xMin+", Y="+yMin+", Z="+zMin)
-                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_SECOND, "&6Мир: " + this.world.getName() + ", X="+this.xMax+", Y="+yMax+", Z="+zMax)
+                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_FIRST, "&6Мир: " + this.world.getName() + ", X=" + this.xMin + ", Y=" + yMin + ", Z=" + zMin)
+                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_SECOND, "&6Мир: " + this.world.getName() + ", X=" + this.xMax + ", Y=" + yMax + ", Z=" + zMax)
                 ;
     }
 }
