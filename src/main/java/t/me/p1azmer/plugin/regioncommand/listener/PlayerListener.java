@@ -501,97 +501,30 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
     public void onShift(@NotNull PlayerToggleSneakEvent event) {
         if (event.isCancelled()) return;
         Player player = event.getPlayer();
-        if (player.isSneaking()) return;
-        if (this.manager.inRegion(player)) {
-            Region region = this.manager.getRegion(player);
-            if (region != null) {
-
-                PlayerShiftInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerShiftInRegionEvent(player, region));
-                if (customEventCaller.isCancelled()) {
-                    event.setCancelled(true);
-                    return;
-                }
-                ActiveRegion activeRegion = region.getActiveRegion();
-
-                EventAction eventAction = activeRegion.getEventActionByEvent(SHIFT);
-                if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
-                        JPermission permission = eventAction.getPermission();
-                        if (permission != null && !player.hasPermission(permission)) {
-                            plugin.getMessage(Lang.Permission_Event_Shift).send(player);
-                            event.setCancelled(true);
-                            return;
-                        }
-                    }
-                    int time = eventAction.getCooldown();
-                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_SHIFT", time)) {
-                        if (eventAction.getLangKey() != null)
-                            plugin.getMessage(eventAction.getLangKey())
-                                    .replace("%time%", time)
-                                    .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
-                                    .send(player);
-                        return;
-                    }
-                    eventAction.getManipulator().process(player);
-
-                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + SHIFT.name();
-                    eventAction.getManipulator().replace(s -> s
-                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
-                    );
-
-                    if (SHIFT.cancelledEvents.contains(player)) {
-                        event.setCancelled(true);
-                    }
-                }
-
-                boolean cancelled = activeRegion.getCancelled().getOrDefault(SHIFT, false);
-                event.setCancelled(cancelled);
-
-                int time = activeRegion.getCooldowns().getOrDefault(SHIFT, -1);
-                if (time > 0) {
-                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_SHIFT", time)) {
-                        plugin.getMessage(Lang.Cooldown_Event_Shift)
-                                .replace("%time%", time)
-                                .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
-                                .send(player);
-                        event.setCancelled(true);
-                        return;
-                    }
-                }
-
-                plugin.getMessage(Lang.Events_Shift).send(player); // message for event
-            }
-        }
-    }
-
-    @EventHandler
-    public void onJump(@NotNull PlayerJumpEvent event) {
-        if (event.isCancelled()) return;
-        if (event.getFrom().getY() + 1 == event.getTo().getY() || event.getFrom().getY() + 2 == event.getTo().getY()) {
-            Player player = event.getPlayer();
+        if (player.isSneaking()) {
             if (this.manager.inRegion(player)) {
-
                 Region region = this.manager.getRegion(player);
                 if (region != null) {
-                    PlayerJumpInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerJumpInRegionEvent(player, region));
+
+                    PlayerShiftUPInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerShiftUPInRegionEvent(player, region));
                     if (customEventCaller.isCancelled()) {
                         event.setCancelled(true);
                         return;
                     }
                     ActiveRegion activeRegion = region.getActiveRegion();
 
-                    EventAction eventAction = activeRegion.getEventActionByEvent(JUMP);
+                    EventAction eventAction = activeRegion.getEventActionByEvent(SHIFT_UP);
                     if (eventAction != null) {
                         if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                             JPermission permission = eventAction.getPermission();
                             if (permission != null && !player.hasPermission(permission)) {
-                                plugin.getMessage(Lang.Permission_Event_Jump).send(player);
+                                plugin.getMessage(Lang.Permission_Event_Shift_Up).send(player);
                                 event.setCancelled(true);
                                 return;
                             }
                         }
                         int time = eventAction.getCooldown();
-                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_JUMP", time)) {
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_SHIFT_UP", time)) {
                             if (eventAction.getLangKey() != null)
                                 plugin.getMessage(eventAction.getLangKey())
                                         .replace("%time%", time)
@@ -601,24 +534,23 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
                         }
                         eventAction.getManipulator().process(player);
 
-                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + JUMP.name();
+                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + SHIFT_UP.name();
                         eventAction.getManipulator().replace(s -> s
                                 .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
                         );
 
-                        if (JUMP.cancelledEvents.contains(player)) {
+                        if (SHIFT_UP.cancelledEvents.contains(player)) {
                             event.setCancelled(true);
-                            return;
                         }
                     }
 
-                    boolean cancelled = activeRegion.getCancelled().getOrDefault(JUMP, false);
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(SHIFT_UP, false);
                     event.setCancelled(cancelled);
 
-                    int time = activeRegion.getCooldowns().getOrDefault(JUMP, -1);
+                    int time = activeRegion.getCooldowns().getOrDefault(SHIFT_UP, -1);
                     if (time > 0) {
-                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_JUMP", time)) {
-                            plugin.getMessage(Lang.Cooldown_Event_Jump)
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_SHIFT_UP", time)) {
+                            plugin.getMessage(Lang.Cooldown_Event_Shift_Up)
                                     .replace("%time%", time)
                                     .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
                                     .send(player);
@@ -627,77 +559,207 @@ public class PlayerListener extends AbstractListener<RegPlugin> {
                         }
                     }
 
-                    plugin.getMessage(Lang.Events_Jump).send(player); // message for event
+                    plugin.getMessage(Lang.Events_Shift_Up).send(player); // message for event
                 }
             }
-        }
-    }
+        }else{
+            if (this.manager.inRegion(player)) {
+                Region region = this.manager.getRegion(player);
+                if (region != null) {
 
-    @EventHandler
-    public void onCommand(@NotNull PlayerCommandPreprocessEvent event) {
-        if (event.isCancelled()) return;
-        Player player = event.getPlayer();
-        if (this.manager.inRegion(player)) {
+                    PlayerShiftDOWNInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerShiftDOWNInRegionEvent(player, region));
+                    if (customEventCaller.isCancelled()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    ActiveRegion activeRegion = region.getActiveRegion();
 
+                    EventAction eventAction = activeRegion.getEventActionByEvent(SHIFT_DOWN);
+                    if (eventAction != null) {
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                            JPermission permission = eventAction.getPermission();
+                            if (permission != null && !player.hasPermission(permission)) {
+                                plugin.getMessage(Lang.Permission_Event_Shift_Down).send(player);
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+                        int time = eventAction.getCooldown();
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_SHIFT_DOWN", time)) {
+                            if (eventAction.getLangKey() != null)
+                                plugin.getMessage(eventAction.getLangKey())
+                                        .replace("%time%", time)
+                                        .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
+                                        .send(player);
+                            return;
+                        }
+                        eventAction.getManipulator().process(player);
 
-            Region region = this.manager.getRegion(player);
-            if (region != null) {
-                PlayerCommandInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerCommandInRegionEvent(player, region));
-                if (customEventCaller.isCancelled()) {
-                    event.setCancelled(true);
-                    return;
-                }
-                ActiveRegion activeRegion = region.getActiveRegion();
+                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + SHIFT_DOWN.name();
+                        eventAction.getManipulator().replace(s -> s
+                                .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                        );
 
-                EventAction eventAction = activeRegion.getEventActionByEvent(COMMANDS);
-                if (eventAction != null) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
-                        JPermission permission = eventAction.getPermission();
-                        if (permission != null && !player.hasPermission(permission)) {
-                            plugin.getMessage(Lang.Permission_Event_Commands).send(player);
+                        if (SHIFT_DOWN.cancelledEvents.contains(player)) {
+                            event.setCancelled(true);
+                        }
+                    }
+
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(SHIFT_DOWN, false);
+                    event.setCancelled(cancelled);
+
+                    int time = activeRegion.getCooldowns().getOrDefault(SHIFT_DOWN, -1);
+                    if (time > 0) {
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_SHIFT_DOWN", time)) {
+                            plugin.getMessage(Lang.Cooldown_Event_Shift_Down)
+                                    .replace("%time%", time)
+                                    .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
+                                    .send(player);
                             event.setCancelled(true);
                             return;
                         }
                     }
-                    int time = eventAction.getCooldown();
-                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_COMMANDS", time)) {
-                        if (eventAction.getLangKey() != null)
-                            plugin.getMessage(eventAction.getLangKey())
+
+                    plugin.getMessage(Lang.Events_Shift_Down).send(player); // message for event
+                }
+            }
+        }
+        }
+
+        @EventHandler
+        public void onJump (@NotNull PlayerJumpEvent event){
+            if (event.isCancelled()) return;
+            if (event.getFrom().getY() + 1 == event.getTo().getY() || event.getFrom().getY() + 2 == event.getTo().getY()) {
+                Player player = event.getPlayer();
+                if (this.manager.inRegion(player)) {
+
+                    Region region = this.manager.getRegion(player);
+                    if (region != null) {
+                        PlayerJumpInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerJumpInRegionEvent(player, region));
+                        if (customEventCaller.isCancelled()) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                        ActiveRegion activeRegion = region.getActiveRegion();
+
+                        EventAction eventAction = activeRegion.getEventActionByEvent(JUMP);
+                        if (eventAction != null) {
+                            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                JPermission permission = eventAction.getPermission();
+                                if (permission != null && !player.hasPermission(permission)) {
+                                    plugin.getMessage(Lang.Permission_Event_Jump).send(player);
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                            }
+                            int time = eventAction.getCooldown();
+                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_JUMP", time)) {
+                                if (eventAction.getLangKey() != null)
+                                    plugin.getMessage(eventAction.getLangKey())
+                                            .replace("%time%", time)
+                                            .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
+                                            .send(player);
+                                return;
+                            }
+                            eventAction.getManipulator().process(player);
+
+                            String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + JUMP.name();
+                            eventAction.getManipulator().replace(s -> s
+                                    .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                            );
+
+                            if (JUMP.cancelledEvents.contains(player)) {
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+
+                        boolean cancelled = activeRegion.getCancelled().getOrDefault(JUMP, false);
+                        event.setCancelled(cancelled);
+
+                        int time = activeRegion.getCooldowns().getOrDefault(JUMP, -1);
+                        if (time > 0) {
+                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_JUMP", time)) {
+                                plugin.getMessage(Lang.Cooldown_Event_Jump)
+                                        .replace("%time%", time)
+                                        .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
+                                        .send(player);
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+
+                        plugin.getMessage(Lang.Events_Jump).send(player); // message for event
+                    }
+                }
+            }
+        }
+
+        @EventHandler
+        public void onCommand (@NotNull PlayerCommandPreprocessEvent event){
+            if (event.isCancelled()) return;
+            Player player = event.getPlayer();
+            if (this.manager.inRegion(player)) {
+
+
+                Region region = this.manager.getRegion(player);
+                if (region != null) {
+                    PlayerCommandInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerCommandInRegionEvent(player, region));
+                    if (customEventCaller.isCancelled()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    ActiveRegion activeRegion = region.getActiveRegion();
+
+                    EventAction eventAction = activeRegion.getEventActionByEvent(COMMANDS);
+                    if (eventAction != null) {
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                            JPermission permission = eventAction.getPermission();
+                            if (permission != null && !player.hasPermission(permission)) {
+                                plugin.getMessage(Lang.Permission_Event_Commands).send(player);
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+                        int time = eventAction.getCooldown();
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_COMMANDS", time)) {
+                            if (eventAction.getLangKey() != null)
+                                plugin.getMessage(eventAction.getLangKey())
+                                        .replace("%time%", time)
+                                        .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
+                                        .send(player);
+                            return;
+                        }
+                        eventAction.getManipulator().process(player);
+
+                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + COMMANDS.name();
+                        eventAction.getManipulator().replace(s -> s
+                                .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                        );
+
+                        if (COMMANDS.cancelledEvents.contains(player)) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(COMMANDS, false);
+                    event.setCancelled(cancelled);
+
+                    int time = activeRegion.getCooldowns().getOrDefault(COMMANDS, -1);
+                    if (time > 0) {
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_COMMANDS", time)) {
+                            plugin.getMessage(Lang.Cooldown_Event_Commands)
                                     .replace("%time%", time)
                                     .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
                                     .send(player);
-                        return;
+                            event.setCancelled(true);
+                            return;
+                        }
                     }
-                    eventAction.getManipulator().process(player);
 
-                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + COMMANDS.name();
-                    eventAction.getManipulator().replace(s -> s
-                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
-                    );
-
-                    if (COMMANDS.cancelledEvents.contains(player)) {
-                        event.setCancelled(true);
-                        return;
-                    }
+                    plugin.getMessage(Lang.Events_Commands).send(player); // message for event
                 }
-
-                boolean cancelled = activeRegion.getCancelled().getOrDefault(COMMANDS, false);
-                event.setCancelled(cancelled);
-
-                int time = activeRegion.getCooldowns().getOrDefault(COMMANDS, -1);
-                if (time > 0) {
-                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_COMMANDS", time)) {
-                        plugin.getMessage(Lang.Cooldown_Event_Commands)
-                                .replace("%time%", time)
-                                .replace("%time_correct%", TimeUtil.leftTime(time * 20L))
-                                .send(player);
-                        event.setCancelled(true);
-                        return;
-                    }
-                }
-
-                plugin.getMessage(Lang.Events_Commands).send(player); // message for event
             }
         }
     }
-}

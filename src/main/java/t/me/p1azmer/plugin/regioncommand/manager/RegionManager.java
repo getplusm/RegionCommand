@@ -8,6 +8,7 @@ import t.me.p1azmer.aves.engine.api.manager.AbstractManager;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.listener.DetectListener;
+import t.me.p1azmer.plugin.regioncommand.listener.PhysicalListener;
 import t.me.p1azmer.plugin.regioncommand.listener.PlayerListener;
 
 import java.util.HashMap;
@@ -20,6 +21,8 @@ public class RegionManager extends AbstractManager<RegPlugin> {
     private PlayerListener playerListener;
     private DetectListener detectListener;
 
+    private PhysicalListener physicalListener;
+
     public RegionManager(@NotNull RegPlugin plugin) {
         super(plugin);
     }
@@ -31,6 +34,9 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
         this.playerListener = new PlayerListener(this);
         this.playerListener.registerListeners();
+
+        this.physicalListener = new PhysicalListener(this);
+        this.physicalListener.registerListeners();
 
         this.regions = new HashMap<>();
 
@@ -64,6 +70,10 @@ public class RegionManager extends AbstractManager<RegPlugin> {
         if (this.detectListener != null) {
             this.detectListener.unregisterListeners();
             this.detectListener = null;
+        }
+        if (this.physicalListener != null){
+            this.physicalListener.unregisterListeners();
+            this.physicalListener = null;
         }
     }
 
