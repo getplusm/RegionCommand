@@ -4,13 +4,16 @@ import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.actions.ActionManipulator;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
 import t.me.p1azmer.aves.engine.api.config.JYML;
-import t.me.p1azmer.aves.engine.api.lang.LangKey;
+import t.me.p1azmer.aves.engine.api.lang.LangMessage;
+import t.me.p1azmer.aves.engine.api.manager.AbstractConfigHolder;
+import t.me.p1azmer.aves.engine.api.manager.ICleanable;
 import t.me.p1azmer.aves.engine.api.manager.IEditable;
 import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
 import t.me.p1azmer.aves.engine.api.server.JPermission;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.aves.engine.utils.NumberUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
+import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
 import t.me.p1azmer.plugin.regioncommand.editor.action.ActiveRegionEditor;
 import t.me.p1azmer.plugin.regioncommand.editor.action.events.EventActiveListEditor;
@@ -21,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-public class ActiveRegion implements IPlaceholder, IEditable {
+public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPlaceholder, IEditable, ICleanable {
 
     private final Region region;
     private double radius;
@@ -35,6 +38,7 @@ public class ActiveRegion implements IPlaceholder, IEditable {
     private EventActiveListEditor eventActiveListEditor;
 
     public ActiveRegion(Region region) {
+        super(region.plugin(), region.getConfig());
         this.region = region;
         this.config = region.getConfig();
         this.radius = 0;
@@ -44,6 +48,7 @@ public class ActiveRegion implements IPlaceholder, IEditable {
     }
 
     public ActiveRegion(Region region, JYML cfg) {
+        super(region.plugin(), cfg);
         this.config = cfg;
         this.region = region;
 
@@ -82,12 +87,13 @@ public class ActiveRegion implements IPlaceholder, IEditable {
             if (!perm.isEmpty())
                 permission = new JPermission(perm, "Доступ к действию в регионе");
             int time = cfg.getInt(finalPath + "Cooldown");
-            boolean canceled = cfg.getBoolean(finalPath + "Canceled", false);
+            boolean canceled = cfg.getBoolean(finalPath + "Cancelled", false);
             this.cancelled.put(event, canceled);
+
             ActionManipulator manipulator = new ActionManipulator(cfg, finalPath + "Action");
 
-            LangKey langKey = LangKey.of(finalPath + "Cooldown.Message", "&cДействие невозможно выполнять так часто, ожидайте");
-            EventAction eventAction = new EventAction(this, event, permission, langKey, time, manipulator, canceled);
+            LangMessage langMessage = new LangMessage(region.plugin(), cfg.getString(finalPath + "Cooldown.Message", "&cДействие невозможно выполнять так часто, ожидайте"));
+            EventAction eventAction = new EventAction(this, event, permission, langMessage, time, manipulator, canceled);
             this.eventActions.add(eventAction);
         });
     }
@@ -120,32 +126,42 @@ public class ActiveRegion implements IPlaceholder, IEditable {
         this.radius = radius;
     }
 
-    public void save() {
-        StringBuilder path = new StringBuilder("Active.");
+    @Override
+    public boolean load() {
+        return true;
+    }
+
+    @Override
+    public void onSave() {
+        String path = "Active.";
         this.config.set(path + "Radius", this.getRadius());
         this.config.set(path + "Cooldown", this.getCooldowns());
-        path.append("Events.");
-        this.getEventActions().forEach(eventAction -> {
+        String finalPath1 = path + "Events.";
+        if (!this.config.contains(finalPath1))
+            this.config.createSection(path + "Events");
+        this.eventActions.forEach(eventAction -> {
             String id = eventAction.getEvents().name();
-            path.append(id).append(".");
+            String finalPath = finalPath1 + id + ".";
+            plugin.info("Save the event action on region '" + this.region.getId() + "'. Event= " + eventAction.getEvents().name() + ", path=" + finalPath);
+            this.config.set(finalPath + "Cancelled", eventAction.isCancelled());
             if (eventAction.getPermission() != null) {
-                this.config.set(path + "Permission", eventAction.getPermission().getName());
-            } else if (this.config.contains(path + "Permission"))
-                this.config.remove(path + "Permission");
-            if (eventAction.getLangKey() != null) {
-                this.config.set(path + "Cooldown.Message", eventAction.getLangKey().getDefaultText());
-            } else if (this.config.contains(path + "Cooldown.Message"))
-                this.config.remove(path + "Cooldown.Message");
+                this.config.set(finalPath + "Permission", eventAction.getPermission().getName());
+            } else if (this.config.contains(finalPath + "Permission"))
+                this.config.remove(finalPath + "Permission");
+            if (eventAction.getLangMessage() != null) {
+                this.config.set(finalPath + "Cooldown.Message", eventAction.getLangMessage().getRaw());
+            } else if (this.config.contains(finalPath + "Cooldown.Message"))
+                this.config.remove(finalPath + "Cooldown.Message");
             if (eventAction.getManipulator() != null) {
                 for (ActionSection section : eventAction.getManipulator().getActions().values()) {
-                    this.config.set(path + "Action.Conditions.List", section.getConditions());
-                    this.config.set(path + "Action.Conditions.Fail_Actions", section.getConditionFailActions());
-                    this.config.set(path + "Action.Action_Executors", section.getActionExecutors());
+                    this.config.set(finalPath + "Action." + section.getId() + ".Conditions.List", section.getConditions());
+                    this.config.set(finalPath + "Action." + section.getId() + ".Conditions.Fail_Actions", section.getConditionFailActions());
+                    this.config.set(finalPath + "Action." + section.getId() + ".Action_Executors", section.getActionExecutors());
                 }
             }
 
         });
-        this.config.save();
+        this.config.saveChanges();
     }
 
     @NotNull
@@ -169,5 +185,17 @@ public class ActiveRegion implements IPlaceholder, IEditable {
                 .replace(Placeholders.PLACEHOLDER_ACTION_RADIUS, String.valueOf(this.radius))
                 .replace(Placeholders.PLACEHOLDER_ACTION_EVENTS_SIZE, NumberUtil.format(this.eventActions.size()))
                 ;
+    }
+
+    @Override
+    public void clear() {
+        if (this.eventActiveListEditor != null) {
+            this.eventActiveListEditor.clear();
+            this.eventActiveListEditor = null;
+        }
+        if (this.editor != null) {
+            this.editor.clear();
+            this.editor = null;
+        }
     }
 }

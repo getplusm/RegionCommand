@@ -9,7 +9,7 @@ import t.me.p1azmer.aves.engine.actions.ActionManipulator;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
 import t.me.p1azmer.aves.engine.api.editor.EditorInput;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenuAuto;
 import t.me.p1azmer.aves.engine.editor.EditorManager;
@@ -20,7 +20,7 @@ import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
 import t.me.p1azmer.plugin.regioncommand.api.EventAction;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
-import t.me.p1azmer.plugin.regioncommand.data.Lang;
+import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
 import java.util.ArrayList;
@@ -71,64 +71,63 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
                 if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection(List.of(msg), "", new ArrayList<>()));
+                manipulator.getActions().put("default", new ActionSection("default", List.of(msg), "", new ArrayList<>()));
             } else if (type.equals(EditorType.ACTION_CREATE_EXECUTOR)) {
                 ActionManipulator manipulator = new ActionManipulator();
                 if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection(new ArrayList<>(), "", List.of(msg)));
+                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), "", List.of(msg)));
             } else if (type.equals(EditorType.ACTION_CREATE_FAIL)) {
                 ActionManipulator manipulator = new ActionManipulator();
                 if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection(new ArrayList<>(), msg, new ArrayList<>()));
+                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), msg, new ArrayList<>()));
             }
+            eventAction.getActiveRegion().save();
             return true;
         };
 
-        EditorInput<EventAction, EditorType> eventsInput = (player, region, type, event) -> {
-            String msg = event.getMessage();
-            if (type.equals(EditorType.ACTION_CREATE_CONDITION) || type.equals(EditorType.ACTION_CREATE_EXECUTOR) || type.equals(EditorType.ACTION_CREATE_FAIL)) {
-                Events events = CollectionsUtil.getEnum(msg, Events.class);
-                if (events == null) {
-                    EditorManager.error(player, "Ивент обработчик не найден!");
-                    return false;
-                }
+//        EditorInput<EventAction, EditorType> eventsInput = (player, eventAction, type, event) -> {
+//            String msg = event.getMessage();
+//            if (type.equals(EditorType.ACTION_CREATE_CONDITION) || type.equals(EditorType.ACTION_CREATE_EXECUTOR) || type.equals(EditorType.ACTION_CREATE_FAIL)) {
+//                Events events = CollectionsUtil.getEnum(msg, Events.class);
+//                if (events == null) {
+//                    EditorManager.error(player, "Ивент обработчик не найден!");
+//                    return false;
+//                }
+//                EditorManager.endEdit(player);
+//                EditorManager.startEdit(player, eventAction, type, actionInput);
+//                EditorManager.tip(player, Lang.EDITOR_WRITE_ACTION.getDefaultText());
+//                eventAction.getActiveRegion().save();
+//            }
+//            return true;
+//        };
 
-                EditorManager.endEdit(player);
-                EditorManager.startEdit(player, region, type, actionInput);
-                EditorManager.tip(player, Lang.EDITOR_WRITE_ACTION.getDefaultText());
-                player.closeInventory();
-                return true;
-            }
-            return false;
-        };
-
-        IMenuClick click = (player, type, inventoryClickEvent) -> {
+        MenuClick click = (player, type, inventoryClickEvent) -> {
             if (type == null) return;
             if (type instanceof MenuItemType type2) {
                 if (type2.equals(MenuItemType.RETURN))
                     this.parent.getActionListEditor().open(player, 1);
             } else if (type instanceof EditorType type2) {
                 if (type2.equals(EditorType.ACTION_CREATE_CONDITION)) {
-                    EditorManager.startEdit(player, parent, type2, eventsInput);
+                    EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
                     EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
                     player.closeInventory();
                 } else if (this.selectType.equals(ActionSelector.ActionSelectType.EXECUTORS)) {
-                    EditorManager.startEdit(player, parent, type2, eventsInput);
+                    EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
                     EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
                     player.closeInventory();
                 } else if (this.selectType.equals(ActionSelector.ActionSelectType.FAIL)) {
-                    EditorManager.startEdit(player, parent, type2, eventsInput);
+                    EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
                     EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
                     player.closeInventory();
                 } else if (type2.equals(EditorType.EVENTS_CHANGE_CANCELLED)) {
-                    EditorManager.startEdit(player, parent, type2, eventsInput);
+                    EditorManager.startEdit(player, parent, type2, actionInput);
                 }
             }
         };
@@ -182,7 +181,7 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
     }
 
     @Override
-    protected @NotNull IMenuClick getObjectClick(@NotNull Player player, @NotNull String eventAction) {
+    protected @NotNull MenuClick getObjectClick(@NotNull Player player, @NotNull String eventAction) {
         return (player1, type, event) -> {
             ActionManipulator manipulator = this.parent.getManipulator();
             if (event.isShiftClick()) {

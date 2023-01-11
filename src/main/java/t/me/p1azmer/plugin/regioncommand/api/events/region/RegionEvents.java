@@ -1,6 +1,6 @@
 package t.me.p1azmer.plugin.regioncommand.api.events.region;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,21 +11,23 @@ public abstract class RegionEvents extends Event implements Cancellable {
 
     private static final HandlerList handlerList = new HandlerList();
 
-    protected Player player;
+    protected LivingEntity player;
     protected Region region;
     protected boolean cancelled;
 
-    public RegionEvents(Player player, Region region){
+    public RegionEvents(@NotNull LivingEntity player, @NotNull Region region){
 
         this.player = player;
         this.region = region;
     }
 
+    @NotNull
     public Region getRegion() {
         return region;
     }
 
-    public Player getPlayer() {
+    @NotNull
+    public LivingEntity getEntity() {
         return player;
     }
 

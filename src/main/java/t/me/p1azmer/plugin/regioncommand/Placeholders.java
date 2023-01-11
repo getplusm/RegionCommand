@@ -3,8 +3,8 @@ package t.me.p1azmer.plugin.regioncommand;
 public class Placeholders extends t.me.p1azmer.aves.engine.utils.Placeholders {
 
     public static String PLACEHOLDER_REGION_NAME = "%region_name%";
-    public static String PLACEHOLDER_REGION_CUBOID_FIRST = "%region_cuboid_first%";
-    public static String PLACEHOLDER_REGION_CUBOID_SECOND = "%region_cuboid_second%";
+    public static String PLACEHOLDER_REGION_CUBOID_MIN = "%region_cuboid_min%";
+    public static String PLACEHOLDER_REGION_CUBOID_MAX = "%region_cuboid_max%";
 
     public static String PLACEHOLDER_ACTION_RADIUS = "%region_action_radius%";
 

@@ -1,13 +1,16 @@
 package t.me.p1azmer.plugin.regioncommand.editor;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
 import t.me.p1azmer.aves.engine.api.editor.EditorInput;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenuAuto;
 import t.me.p1azmer.aves.engine.editor.EditorManager;
@@ -15,7 +18,7 @@ import t.me.p1azmer.aves.engine.utils.ItemUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
-import t.me.p1azmer.plugin.regioncommand.data.Lang;
+import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 
 import java.util.ArrayList;
@@ -39,6 +42,7 @@ public class EditorHub extends AbstractEditorMenuAuto<RegPlugin, RegPlugin, Regi
                 }
                 Region region = new Region(manager, id, player.getLocation());
                 region.save();
+                manager.regions.put(id, region);
                 plugin.getMessage(Lang.EDITOR_REGION_CREATED).send(player);
                 EditorManager.endEdit(player);
                 region.getEditor().open(player, 1);
@@ -47,7 +51,7 @@ public class EditorHub extends AbstractEditorMenuAuto<RegPlugin, RegPlugin, Regi
             return true;
         };
 
-        IMenuClick click = (player, type, e) -> {
+        MenuClick click = (player, type, e) -> {
             if (type instanceof MenuItemType type2) {
                 if (type2 == MenuItemType.CLOSE) {
                     player.closeInventory();
@@ -85,15 +89,18 @@ public class EditorHub extends AbstractEditorMenuAuto<RegPlugin, RegPlugin, Regi
     @Override
     protected @NotNull ItemStack getObjectStack(@NotNull Player player, @NotNull Region region) {
         ItemStack item = new ItemStack(Material.ZOMBIE_HEAD);
-        ItemUtil.setName(item, "&6Название: " + Placeholders.PLACEHOLDER_REGION_NAME);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null)
+            meta.displayName(Component.text("&6Название: " + Placeholders.PLACEHOLDER_REGION_NAME));
+        item.setItemMeta(meta);
         ItemUtil.addLore(item, "item_lore", Arrays.asList(
                 "&7Радиус действия: &6" + Placeholders.PLACEHOLDER_ACTION_RADIUS,
                 "",
                 "&7Кубоид:",
-                "&7Первая локация:",
-                Placeholders.PLACEHOLDER_REGION_CUBOID_FIRST,
-                "&7Вторая локация:",
-                Placeholders.PLACEHOLDER_REGION_CUBOID_FIRST,
+                "&7Нижняя точка:",
+                Placeholders.PLACEHOLDER_REGION_CUBOID_MIN,
+                "&7Верхняя точка:",
+                Placeholders.PLACEHOLDER_REGION_CUBOID_MAX,
                 "",
                 "&eЛКМ, чтобы настроить",
                 "&eПКМ, для телепорта",
@@ -105,10 +112,10 @@ public class EditorHub extends AbstractEditorMenuAuto<RegPlugin, RegPlugin, Regi
     }
 
     @Override
-    protected @NotNull IMenuClick getObjectClick(@NotNull Player player, @NotNull Region region) {
+    protected @NotNull MenuClick getObjectClick(@NotNull Player player, @NotNull Region region) {
         return (player1, type, event) -> {
             if (event.isRightClick()) {
-                player.teleport(region.getCuboid().getCenter());
+                player.teleport(region.getTerritory().getCenter());
                 return;
             }
             if (event.isShiftClick()) {

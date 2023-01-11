@@ -9,7 +9,6 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
-import t.me.p1azmer.api.Schedulers;
 import t.me.p1azmer.aves.engine.api.manager.AbstractListener;
 import t.me.p1azmer.aves.engine.utils.PlayerUtil;
 import t.me.p1azmer.aves.engine.utils.StringUtil;
@@ -20,9 +19,9 @@ import t.me.p1azmer.plugin.regioncommand.api.EventAction;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.events.cuboid.PlayerEnterCuboidEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.cuboid.PlayerLeaveCuboidEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.PlayerEnterRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.PlayerLeaveRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.PlayerMoveInRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerEnterRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerLeaveRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerMoveInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 
@@ -36,7 +35,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
     }
 
 
-// register custom events (like enter cuboid)
+    // register custom events (like enter cuboidRegion)
 
     @EventHandler
     public void detectCuboidEvent(@NotNull PlayerMoveEvent event) {
@@ -49,7 +48,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         Region fromRegion = manager.getRegion(from);
 
         if (fromRegion == null && toRegion != null) {
-            PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterCuboidEvent(player, toRegion.getCuboid()));
+            PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterCuboidEvent(player, toRegion.getTerritory()));
             PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, toRegion));
             if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
                 if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
@@ -57,7 +56,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
                 return;
             }
         } else if (fromRegion != null && toRegion == null) {
-            PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveCuboidEvent(player, fromRegion.getCuboid()));
+            PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveCuboidEvent(player, fromRegion.getTerritory()));
             PlayerLeaveRegionEvent playerLeaveRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeaveRegionEvent(player, fromRegion));
             if (playerLeaveCuboidEvent.isCancelled() || playerLeaveRegionEvent.isCancelled()) {
                 if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
@@ -79,7 +78,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
     public void onRegionEnter(@NotNull PlayerEnterRegionEvent event) {
         if (event.isCancelled()) return;
 
-        Player player = event.getPlayer();
+        Player player = (Player) event.getEntity();
         Region region = event.getRegion();
         ActiveRegion activeRegion = region.getActiveRegion();
         EventAction eventAction = activeRegion.getEventActionByEvent(Events.ENTER);
@@ -103,7 +102,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
 
         if (fromRegion == null && toRegion != null) {
             event.setCancelled(true);
-                PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterCuboidEvent(player, toRegion.getCuboid()));
+                PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterCuboidEvent(player, toRegion.getTerritory()));
                 PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterRegionEvent(player, toRegion));
                 if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
                     if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
@@ -113,7 +112,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
                     event.setCancelled(false);
         } else if (fromRegion != null && toRegion == null) {
             event.setCancelled(true);
-            PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerLeaveCuboidEvent(player, fromRegion.getCuboid()));
+            PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerLeaveCuboidEvent(player, fromRegion.getTerritory()));
             PlayerLeaveRegionEvent playerLeaveRegionEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerLeaveRegionEvent(player, fromRegion));
             if (playerLeaveCuboidEvent.isCancelled() || playerLeaveRegionEvent.isCancelled()) {
                 if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {

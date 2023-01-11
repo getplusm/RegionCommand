@@ -7,13 +7,16 @@ import t.me.p1azmer.aves.engine.api.editor.EditorHolder;
 import t.me.p1azmer.aves.engine.command.list.EditorSubCommand;
 import t.me.p1azmer.aves.engine.command.list.ReloadSubCommand;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
-import t.me.p1azmer.plugin.regioncommand.data.Lang;
+import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorHub;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
+import t.me.p1azmer.plugin.regioncommand.utils.action.condition.MaterialCondition;
 import t.me.p1azmer.plugin.regioncommand.utils.action.condition.TimerCooldownCondition;
+import t.me.p1azmer.plugin.regioncommand.utils.action.executors.BlockRestoreAction;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.CancelledEventAction;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
+import t.me.p1azmer.plugin.regioncommand.utils.action.parameter.MaterialParameter;
 
 public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolder<RegPlugin, EditorType> {
 
@@ -31,11 +34,19 @@ public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolde
         this.manager = new RegionManager(this);
         this.manager.setup();
 
+        this.getActionsManager().registerParameter(new MaterialParameter());
 
         this.getActionsManager().registerActionExecutor(new CancelledEventAction());
         this.getActionsManager().registerActionExecutor(new TimerEventAction());
+        /**
+         * Automatically restore block when destroyed
+         * Example: name: STONE,COBBLESTONE; ~type: BEDROCK (replaced)
+         */
+        this.getActionsManager().registerActionExecutor(new BlockRestoreAction());
 
         this.getActionsManager().registerConditionValidator(new TimerCooldownCondition());
+        this.getActionsManager().registerConditionValidator(new MaterialCondition());
+
     }
 
     @Override

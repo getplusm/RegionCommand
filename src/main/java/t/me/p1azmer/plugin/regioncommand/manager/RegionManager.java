@@ -1,20 +1,24 @@
 package t.me.p1azmer.plugin.regioncommand.manager;
 
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.api.config.JYML;
 import t.me.p1azmer.aves.engine.api.manager.AbstractManager;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
-import t.me.p1azmer.plugin.regioncommand.listener.DetectListener;
-import t.me.p1azmer.plugin.regioncommand.listener.PhysicalListener;
-import t.me.p1azmer.plugin.regioncommand.listener.PlayerListener;
+import t.me.p1azmer.plugin.regioncommand.api.territory.RegionTerritory;
+import t.me.p1azmer.plugin.regioncommand.listener.*;
+import t.me.p1azmer.plugin.regioncommand.task.RestoreBlockTask;
+import t.me.p1azmer.plugin.regioncommand.task.ShowRegionTask;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class RegionManager extends AbstractManager<RegPlugin> {
+
+    public Map<Player, Region> regionShown;
 
     public Map<String, Region> regions;
 
@@ -23,6 +27,11 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
     private PhysicalListener physicalListener;
 
+    private CustomListener customListener;
+    private EntityListener entityListener;
+    private ShowRegionTask showRegionTask;
+
+    private RestoreBlockTask restoreBlockTask;
     public RegionManager(@NotNull RegPlugin plugin) {
         super(plugin);
     }
@@ -38,7 +47,22 @@ public class RegionManager extends AbstractManager<RegPlugin> {
         this.physicalListener = new PhysicalListener(this);
         this.physicalListener.registerListeners();
 
+        this.entityListener = new EntityListener(this);
+        this.entityListener.registerListeners();
+
+        this.customListener = new CustomListener(this);
+        this.customListener.registerListeners();
+
         this.regions = new HashMap<>();
+        this.regionShown = new HashMap<>();
+
+        this.showRegionTask = new ShowRegionTask(this.plugin);
+        this.showRegionTask.start();
+
+        if (this.plugin.getActionsManager().getActionExecutor("REGION_RESTORE_BLOCK") != null) {
+            this.restoreBlockTask = new RestoreBlockTask(this);
+            this.restoreBlockTask.start();
+        }
 
         plugin.getScheduler().runTask(plugin, this::loadRegions);
     }
@@ -59,7 +83,10 @@ public class RegionManager extends AbstractManager<RegPlugin> {
     @Override
     protected void onShutdown() {
         if (this.regions != null) {
-            this.regions.values().forEach(Region::clear);
+            this.regions.values().forEach(rg->{
+                rg.save();
+                rg.clear();
+            });
             this.regions.clear();
             this.regions = null;
         }
@@ -74,6 +101,26 @@ public class RegionManager extends AbstractManager<RegPlugin> {
         if (this.physicalListener != null){
             this.physicalListener.unregisterListeners();
             this.physicalListener = null;
+        }
+        if (this.entityListener != null){
+            this.entityListener.unregisterListeners();
+            this.entityListener = null;
+        }
+        if (this.regionShown != null){
+            this.regionShown.clear();
+            this.regionShown = null;
+        }
+        if (this.showRegionTask != null){
+            this.showRegionTask.stop();
+            this.showRegionTask = null;
+        }
+        if (this.restoreBlockTask != null){
+            this.restoreBlockTask.stop();
+            this.restoreBlockTask = null;
+        }
+        if (this.customListener != null){
+            this.customListener.unregisterListeners();
+            this.customListener = null;
         }
     }
 
@@ -95,8 +142,8 @@ public class RegionManager extends AbstractManager<RegPlugin> {
                 .stream()
                 .filter(f -> {
             if (f.getActiveRegion().getRadius() > 0)
-                return f.getCuboid().isInWithMarge(location, f.getActiveRegion().getRadius());
-            return f.getCuboid().isIn(location);
+                return f.getTerritory().isInWithMarge(location, f.getActiveRegion().getRadius());
+            return f.getTerritory().isIn(location);
         })
                 .findFirst()
                 .orElse(null);
@@ -109,22 +156,25 @@ public class RegionManager extends AbstractManager<RegPlugin> {
                 .stream()
                 .filter(f ->
                         this.getRegion(location) != null
-                                || f.getCuboid().isInWithMarge(location, marge))
+                                || f.getTerritory().isInWithMarge(location, marge))
                 .findFirst()
                 .orElse(null);
     }
 
     public Region getRegion(Player player) {
-        return this.regions
-                .values()
-                .stream()
-                .filter(f -> {
-            if (f.getActiveRegion().getRadius() > 0)
-                return f.getCuboid().isInWithMarge(player.getLocation(), f.getActiveRegion().getRadius());
-            return f.getCuboid().isIn(player.getLocation());
-        })
-                .findFirst()
-                .orElse(null);
+        return getRegion(player.getLocation());
+    }
+
+    public Region getRegion(LivingEntity entity){
+        return this.getRegion(entity.getLocation());
+    }
+
+    public Region getRegion(Player player, double merge) {
+        return getRegion(player.getLocation(), merge);
+    }
+
+    public Region getRegion(LivingEntity entity, double merge){
+        return this.getRegion(entity.getLocation(), merge);
     }
 
     public boolean inRegion(Location location) {
@@ -133,5 +183,65 @@ public class RegionManager extends AbstractManager<RegPlugin> {
 
     public boolean inRegion(Player player) {
         return getRegion(player) != null;
+    }
+
+    public boolean inRegion(LivingEntity entity){
+        return inRegion(entity.getLocation());
+    }
+
+    public Map<Player, Region> getRegionShown() {
+        return regionShown;
+    }
+
+//    /**
+//     * Create a {@link ProtectedRegion} from the actor's selection.
+//     *
+//     * @param actor the actor
+//     * @param id the ID of the new region
+//     * @return a new region
+//     * @throws CommandException thrown on an error
+//     */
+//    protected static RegionTerritory checkRegionFromSelection(Actor actor, String id) {
+//        Territory selection = checkSelection(actor);
+//
+//        // Detect the type of region from WorldEdit
+//        if (selection instanceof Polygonal2DRegion) {
+//            Polygonal2DRegion polySel = (Polygonal2DRegion) selection;
+//            int minY = polySel.getMinimumPoint().getBlockY();
+//            int maxY = polySel.getMaximumPoint().getBlockY();
+//            return new ProtectedPolygonalRegion(id, polySel.getPoints(), minY, maxY);
+//        } else if (selection instanceof CuboidRegion) {
+//            BlockVector3 min = selection.getMinimumPoint();
+//            BlockVector3 max = selection.getMaximumPoint();
+//            return new ProtectedCuboidRegion(id, min, max);
+//        } else {
+//            throw new CommandException("Sorry, you can only use cuboids and polygons for WorldGuard regions.");
+//        }
+//    }
+//    /**
+//     * Get a WorldEdit selection for an actor, or emit an exception if there is none
+//     * available.
+//     *
+//     * @param actor the actor
+//     * @return the selection
+//     * @throws CommandException thrown on an error
+//     */
+//    protected static Territory checkSelection(Actor actor) throws CommandException {
+//        LocalSession localSession = WorldEdit.getInstance().getSessionManager().get(actor);
+//        try {
+//            if (localSession == null || localSession.getSelectionWorld() == null) {
+//                throw new IncompleteRegionException();
+//            }
+//            return localSession.getRegionSelector(localSession.getSelectionWorld()).getRegion();
+//        } catch (IncompleteRegionException e) {
+//            throw new CommandException("Please select an area first. " +
+//                    "Use WorldEdit to make a selection! " +
+//                    "(see: https://worldedit.enginehub.org/en/latest/usage/regions/selections/).");
+//        }
+//    }
+
+
+    public CustomListener getCustomListener() {
+        return customListener;
     }
 }

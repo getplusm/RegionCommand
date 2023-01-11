@@ -22,17 +22,21 @@ public enum EditorType implements EditorButtonType {
             , EditorButtonType.click("Нажмите, чтобы изменить")
     ),
 
-    REGION_CHANGE_CUBOID_FIRST(Material.PAPER, "&6Изменить первую локацию"
-            , EditorButtonType.current(PLACEHOLDER_REGION_CUBOID_FIRST)
+    REGION_CHANGE_CUBOID_MIN(Material.PAPER, "&6Изменить нижнюю локацию"
+            , EditorButtonType.current(PLACEHOLDER_REGION_CUBOID_MIN)
             , EditorButtonType.click("Нажмите, чтобы изменить\nЗажмите ШИФТ, чтобы удалить")
     ),
-    REGION_CHANGE_CUBOID_SECOND(Material.PAPER, "&6Изменить вторую локацию"
-            , EditorButtonType.current(PLACEHOLDER_REGION_CUBOID_SECOND)
+    REGION_CHANGE_CUBOID_MAX(Material.PAPER, "&6Изменить верхнюю локацию"
+            , EditorButtonType.current(PLACEHOLDER_REGION_CUBOID_MAX)
             , EditorButtonType.click("Нажмите, чтобы изменить\nЗажмите ШИФТ, чтобы удалить")
     ),
 
+    REGION_SHOW(Material.LANTERN, "&6Показать кубоид эффектом"
+            , EditorButtonType.click("Нажмите, чтобы показать/убрать")
+    ),
+
     REGION_ACTIVE_OBJECT(Material.ACACIA_DOOR, "&6Настройка активного региона"
-            , EditorButtonType.current("&7Активных действий: &6" + Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_SIZE +
+            , EditorButtonType.current("&7Активных действий: &6" + Placeholders.PLACEHOLDER_ACTION_EVENTS_SIZE +
             "\n&7Радиус действия: &6" + Placeholders.PLACEHOLDER_ACTION_RADIUS)
             , EditorButtonType.click("Нажмите, чтобы перейти")
     ),
@@ -112,7 +116,7 @@ public enum EditorType implements EditorButtonType {
     MANIPULATOR_CREATE_ACTION(Material.ANVIL, "Создать новое действие", EditorButtonType.click("Нажмите, чтобы создать")),
 
     EVENTS_MANIPULATORS_OBJECT(Material.COMMAND_BLOCK, "Действия ивента"
-            , EditorButtonType.info("Список действий: " + Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_SIZE)
+            , EditorButtonType.info("Список действий: " + Placeholders.PLACEHOLDER_ACTION_EVENTS_SIZE)
             , EditorButtonType.click("Нажмите, чтобы перейти")
     ),
 

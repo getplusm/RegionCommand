@@ -6,8 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
 import t.me.p1azmer.aves.engine.api.editor.EditorInput;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
-import t.me.p1azmer.aves.engine.api.menu.IMenuItem;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuItem;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenu;
 import t.me.p1azmer.aves.engine.editor.EditorManager;
@@ -16,7 +16,7 @@ import t.me.p1azmer.aves.engine.utils.ItemUtil;
 import t.me.p1azmer.aves.engine.utils.StringUtil;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
-import t.me.p1azmer.plugin.regioncommand.data.Lang;
+import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
 import java.util.Map;
@@ -40,7 +40,7 @@ public class ActiveRegionEditor extends AbstractEditorMenu<RegPlugin, ActiveRegi
             return true;
         };
 
-        IMenuClick click = (player, type, event) -> {
+        MenuClick click = (player, type, event) -> {
             if (type == null) return;
             if (type instanceof MenuItemType type2) {
                 if (type2.equals(MenuItemType.RETURN))
@@ -69,7 +69,7 @@ public class ActiveRegionEditor extends AbstractEditorMenu<RegPlugin, ActiveRegi
     }
 
     @Override
-    public void onItemPrepare(@NotNull Player player, @NotNull IMenuItem menuItem, @NotNull ItemStack item) {
+    public void onItemPrepare(@NotNull Player player, @NotNull MenuItem menuItem, @NotNull ItemStack item) {
         super.onItemPrepare(player, menuItem, item);
         ItemUtil.replace(item, this.object.replacePlaceholders());
     }

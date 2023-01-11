@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
 import t.me.p1azmer.aves.engine.api.editor.EditorInput;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenuAuto;
 import t.me.p1azmer.aves.engine.editor.EditorManager;
@@ -16,7 +16,7 @@ import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
 import t.me.p1azmer.plugin.regioncommand.api.EventAction;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
-import t.me.p1azmer.plugin.regioncommand.data.Lang;
+import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
 import java.util.ArrayList;
@@ -36,16 +36,16 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
                     EditorManager.error(player, "Ивент обработчик не найден!");
                     return false;
                 }
+                EditorManager.tip(player, "Ивент обработчик создан. Настрой его!");
                 EventAction eventAction = new EventAction(activeRegion, events);
                 activeRegion.getEventActions().add(eventAction);
                 activeRegion.save();
-                EditorManager.tip(player, "Ивент обработчик создан. Настрой его!");
                 return true;
             }
             return false;
         };
 
-        IMenuClick click = (player, type, event) -> {
+        MenuClick click = (player, type, event) -> {
             if (type == null) return;
             if (type instanceof MenuItemType type2) {
                 if (type2.equals(MenuItemType.RETURN))
@@ -89,7 +89,7 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
     }
 
     @Override
-    protected @NotNull IMenuClick getObjectClick(@NotNull Player player, @NotNull EventAction eventAction) {
+    protected @NotNull MenuClick getObjectClick(@NotNull Player player, @NotNull EventAction eventAction) {
         return (player1, anEnum, inventoryClickEvent) -> {
             eventAction.getEditor().open(player, 1);
         };

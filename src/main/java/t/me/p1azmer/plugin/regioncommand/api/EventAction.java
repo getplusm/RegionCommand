@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import t.me.p1azmer.aves.engine.actions.ActionManipulator;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
-import t.me.p1azmer.aves.engine.api.lang.LangKey;
+import t.me.p1azmer.aves.engine.api.lang.LangMessage;
 import t.me.p1azmer.aves.engine.api.manager.IEditable;
 import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
 import t.me.p1azmer.aves.engine.api.server.JPermission;
@@ -21,7 +21,7 @@ public class EventAction implements IPlaceholder, IEditable {
 
     private final ActiveRegion activeRegion;
     private final Events events;
-    private LangKey langKey;
+    private LangMessage langMessage;
     private JPermission permission;
     private int cooldown;
     private boolean cancelled;
@@ -31,23 +31,23 @@ public class EventAction implements IPlaceholder, IEditable {
     private ManipulatorActionListEditor actionListEditor;
     private ActionSelector actionSelector;
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangKey langKey, int cooldown, ActionManipulator manipulator) {
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator) {
         this.activeRegion = activeRegion;
         this.events = events;
         this.permission = permission;
-        this.langKey = langKey;
+        this.langMessage = langMessage;
         this.cooldown = cooldown;
         this.manipulator = manipulator;
         this.cancelled = false;
     }
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangKey langKey, int cooldown, ActionManipulator manipulator, boolean cancelled) {
-        this(activeRegion, events, permission, langKey, cooldown, manipulator);
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator, boolean cancelled) {
+        this(activeRegion, events, permission, langMessage, cooldown, manipulator);
         this.setCancelled(cancelled);
     }
 
     public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events) {
-        this(activeRegion, events, null, null, -1, null, false);
+        this(activeRegion, events, null, null, -1, new ActionManipulator(), false);
     }
 
     public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, @NotNull ActionManipulator manipulator) {
@@ -75,8 +75,8 @@ public class EventAction implements IPlaceholder, IEditable {
         return cooldown;
     }
 
-    public LangKey getLangKey() {
-        return langKey;
+    public LangMessage getLangMessage() {
+        return langMessage;
     }
 
     public ActionManipulator getManipulator() {
@@ -95,8 +95,8 @@ public class EventAction implements IPlaceholder, IEditable {
         this.cooldown = cooldown;
     }
 
-    public void setLangKey(LangKey langKey) {
-        this.langKey = langKey;
+    public void setLangMessage(LangMessage langMessage) {
+        this.langMessage = langMessage;
     }
 
     public void setCancelled(boolean cancelled) {
@@ -130,10 +130,9 @@ public class EventAction implements IPlaceholder, IEditable {
         return s -> s
                 .replace(Placeholders.PLACEHOLDER_EVENTS_COOLDOWN, this.cooldown + " сек")
                 .replace(Placeholders.PLACEHOLDER_EVENTS_CANCELLED, LangManager.getBoolean(this.cancelled))
-                .replace(Placeholders.PLACEHOLDER_EVENTS_LANGKEY, this.langKey.getDefaultText())
+                .replace(Placeholders.PLACEHOLDER_EVENTS_LANGKEY, this.langMessage == null ? "Нет" : this.langMessage.getRaw())
                 .replace(Placeholders.PLACEHOLDER_EVENTS_PERMISSION, this.permission == null ? "Нет" : this.permission.getName())
                 .replace(Placeholders.PLACEHOLDER_EVENTS_NAME, this.events.getName(getActiveRegion().getRegion().plugin()))
-                .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_SIZE, String.valueOf(this.getManipulator().getActions().size()))
                 ;
     }
 }

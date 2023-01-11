@@ -21,20 +21,17 @@ public class CancelledEventAction extends AbstractActionExecutor {
     protected void execute(@NotNull Player player, @NotNull ParameterResult result) {
         String name = (String) result.getValue(ParameterId.NAME);
         if (name == null) {
-            player.sendMessage("region command block event returned but name is null!");
             return;
         }
         Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
         if (events == null) {
-            player.sendMessage("region command block event returned but events is null!");
             return;
         }
 
         Location location = player.getLocation();
 
-        Region region = RegionAPI.PLUGIN.getManager().getRegion(location, 100);
+        Region region = RegionAPI.PLUGIN.getManager().getRegion(location, 1);
         if (region == null) {
-            player.sendMessage("region command block event returned but region is null!");
             return;
         }
         events.cancelledCustomEvent(player, region, true);

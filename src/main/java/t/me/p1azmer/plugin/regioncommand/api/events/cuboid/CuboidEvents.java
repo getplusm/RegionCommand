@@ -5,24 +5,24 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import t.me.p1azmer.plugin.regioncommand.utils.Cuboid;
+import t.me.p1azmer.plugin.regioncommand.utils.CuboidRegion;
 
 public abstract class CuboidEvents extends Event implements Cancellable {
 
     private static final HandlerList handlerList = new HandlerList();
 
     protected Player player;
-    protected Cuboid cuboid;
+    protected CuboidRegion cuboidRegion;
     protected boolean cancelled;
 
-    public CuboidEvents(Player player, Cuboid cuboid){
+    public CuboidEvents(Player player, CuboidRegion cuboidRegion){
 
         this.player = player;
-        this.cuboid = cuboid;
+        this.cuboidRegion = cuboidRegion;
     }
 
-    public Cuboid getCuboid() {
-        return cuboid;
+    public CuboidRegion getCuboid() {
+        return cuboidRegion;
     }
 
     public Player getPlayer() {

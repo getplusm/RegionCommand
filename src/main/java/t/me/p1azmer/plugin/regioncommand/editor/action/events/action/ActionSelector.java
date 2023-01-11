@@ -6,8 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
-import t.me.p1azmer.aves.engine.api.menu.IMenuItem;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuItem;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenu;
 import t.me.p1azmer.aves.engine.utils.ItemUtil;
@@ -17,17 +17,16 @@ import t.me.p1azmer.plugin.regioncommand.api.EventAction;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ActionSelector extends AbstractEditorMenu<RegPlugin, EventAction> {
 
-    private ActionSection section;
+    private final ActionSection section;
 
     public ActionSelector(@NotNull RegPlugin plugin, EventAction eventAction, ActionSection section) {
         super(plugin, eventAction, "Выбор активного действия", 9);
         this.section = section;
 
-        IMenuClick click = (player, type, inventoryClickEvent) -> {
+        MenuClick click = (player, type, inventoryClickEvent) -> {
             if (type == null) return;
             if (type instanceof MenuItemType type2) {
                 if (type2.equals(MenuItemType.RETURN)) eventAction.getActionListEditor().open(player, 1);
@@ -50,7 +49,7 @@ public class ActionSelector extends AbstractEditorMenu<RegPlugin, EventAction> {
     }
 
     @Override
-    public void onItemPrepare(@NotNull Player player, @NotNull IMenuItem menuItem, @NotNull ItemStack item) {
+    public void onItemPrepare(@NotNull Player player, @NotNull MenuItem menuItem, @NotNull ItemStack item) {
         super.onItemPrepare(player, menuItem, item);
         ItemUtil.replace(item, this.object.replacePlaceholders());
         ItemUtil.replace(item, this.object.getActiveRegion().replacePlaceholders());

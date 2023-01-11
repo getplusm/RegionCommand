@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
-import t.me.p1azmer.aves.engine.api.menu.IMenuClick;
+import t.me.p1azmer.aves.engine.api.menu.MenuClick;
 import t.me.p1azmer.aves.engine.api.menu.MenuItemType;
 import t.me.p1azmer.aves.engine.editor.AbstractEditorMenuAuto;
 import t.me.p1azmer.aves.engine.utils.ItemUtil;
@@ -25,17 +25,14 @@ public class ManipulatorActionListEditor extends AbstractEditorMenuAuto<RegPlugi
         super(plugin, parent, "Список действий обработчика", 54);
 
 
-
-        IMenuClick click = (player, type, inventoryClickEvent) -> {
+        MenuClick click = (player, type, inventoryClickEvent) -> {
             if (type == null) return;
             if (type instanceof MenuItemType type2) {
-                if (type2.equals(MenuItemType.RETURN))
-                    parent.getEditor().open(player, 1);
-                else
-                    this.onItemClickDefault(player, type2);
-            }else if (type instanceof EditorType type2){
-                if (type2.equals(EditorType.MANIPULATOR_CREATE_ACTION)){
-
+                if (type2.equals(MenuItemType.RETURN)) parent.getEditor().open(player, 1);
+                else this.onItemClickDefault(player, type2);
+            } else if (type instanceof EditorType type2) {
+                if (type2.equals(EditorType.MANIPULATOR_CREATE_ACTION)) {
+                    this.parent.getActionSelector(new ActionSection("default", new ArrayList<>(), "", new ArrayList<>())).open(player, 1);
                 }
             }
         };
@@ -55,24 +52,24 @@ public class ManipulatorActionListEditor extends AbstractEditorMenuAuto<RegPlugi
 
     @Override
     protected @NotNull List<ActionSection> getObjects(@NotNull Player player) {
-        return new ArrayList<>(this.parent.getManipulator().getActions().values());
+        if (this.parent.getManipulator() == null) return new ArrayList<>();
+        else return new ArrayList<>(this.parent.getManipulator().getActions().values());
     }
 
     @Override
     protected @NotNull ItemStack getObjectStack(@NotNull Player player, @NotNull ActionSection section) {
         ItemStack item = EditorType.EVENTS_MANIPULATOR_ACTION_OBJECT.getItem();
-        ItemUtil.replace(item, s -> s
-                .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTIN_ID, this.parent.getManipulator().getActionId(section))
+        String actionId = section.getId();
+        ItemUtil.replace(item, s -> s.replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTIN_ID, actionId == null ? "Нет" : actionId)
                 .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_CONDITIONS_SIZE, String.valueOf(section.getConditions().size()))
                 .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_EXECUTORS_SIZE, String.valueOf(section.getActionExecutors().size()))
-                .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_FAIL_ID, section.getConditionFailActions())
-        );
+                .replace(Placeholders.PLACEHOLDER_EVENTS_MANIPULATOR_ACTION_FAIL_ID, section.getConditionFailActions()));
 
         return item;
     }
 
     @Override
-    protected @NotNull IMenuClick getObjectClick(@NotNull Player player, @NotNull ActionSection section) {
+    protected @NotNull MenuClick getObjectClick(@NotNull Player player, @NotNull ActionSection section) {
         return (player1, type, click) -> this.parent.getActionSelector(section).open(player, 1);
     }
 

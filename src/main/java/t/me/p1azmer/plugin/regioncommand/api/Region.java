@@ -10,15 +10,17 @@ import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
 import t.me.p1azmer.aves.engine.utils.NumberUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
+import t.me.p1azmer.plugin.regioncommand.api.type.RegionType;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorRegion;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
-import t.me.p1azmer.plugin.regioncommand.utils.Cuboid;
+import t.me.p1azmer.plugin.regioncommand.utils.CuboidRegion;
 
 import java.util.function.UnaryOperator;
 
 public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanable, IEditable, IPlaceholder {
 
-    private Cuboid cuboid;
+    private CuboidRegion territory;
+    private RegionType regionType = RegionType.CUBOID;
     private String name;
     private ActiveRegion activeRegion;
     private final RegionManager manager;
@@ -28,7 +30,13 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
     public Region(@NotNull RegionManager manager, @NotNull String id, Location location) {
         super(manager.plugin(), manager.plugin().getDataFolder() + "/regions/" + id + ".yml");
         this.manager = manager;
-        this.setCuboid(new Cuboid(location, location)); // for one block action
+
+//        switch (regionType){
+//            case CUBOID -> this.setTerritory(new CuboidTerritory(id, BlockVector3.at(location.getX(), location.getY(), location.getZ()), BlockVector3.at(location.getX(), location.getY(), location.getZ())));
+//            case POLYGON -> this.setTerritory(new PolygonalTerritory(id, BlockVector3.at(location.getX(), location.getY(), location.getZ()), BlockVector3.at(location.getX(), location.getY(), location.getZ())));
+//        }
+        this.setTerritory(new CuboidRegion(location, location)); // for one block action
+
         this.setName("&7" + id);
         this.setActiveRegion(new ActiveRegion(this));
     }
@@ -39,48 +47,58 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
 
         this.name = cfg.getString("Name", "&7" + getId());
 
-        Location first = cfg.getLocation("Cuboid.First");
-        Location second = cfg.getLocation("Cuboid.Second");
+        Location first = cfg.getLocation("Territory.Maximum");
+        Location second = cfg.getLocation("Territory.Minimum");
 
         if (first == null) {
-            throw new IllegalArgumentException("Invalid first location at cuboid region '" + getId() + "'");
+            throw new IllegalArgumentException("Invalid first location at cuboidRegion region '" + getId() + "'");
         } else if (second == null) {
-            throw new IllegalArgumentException("Invalid second location at cuboid region '" + getId() + "'");
+            throw new IllegalArgumentException("Invalid second location at cuboidRegion region '" + getId() + "'");
         } else {
 
-            this.setCuboid(new Cuboid(first, second)); // for one block action
+            this.setTerritory(new CuboidRegion(first, second)); // for one block action
             this.setActiveRegion(new ActiveRegion(this, cfg));
         }
     }
 
     @Override
     public boolean load() {
-        return false;
+        return true;
     }
 
     @Override
     public void onSave() {
         cfg.set("Name", this.getName());
-        cfg.set("Cuboid.First", this.getCuboid().getPoint1());
-        cfg.set("Cuboid.Second", this.getCuboid().getPoint2());
+        cfg.set("Territory.Type", this.getRegionType().getName());
+        cfg.set("Territory.Maximum", this.getTerritory().getPoint1());//this.getTerritory().getMaximumPoint().toParserString());
+        cfg.set("Territory.Minimum", this.getTerritory().getPoint2());//this.getTerritory().getMinimumPoint().toParserString());
+        cfg.saveChanges();
         this.getActiveRegion().save();
     }
 
     @Override
     public void clear() {
-
+        if (this.editorRegion != null) {
+            this.editorRegion.clear();
+            this.editorRegion = null;
+        }
+        this.activeRegion.clear();
     }
 
     public String getName() {
         return name;
     }
 
+    public RegionType getRegionType() {
+        return regionType;
+    }
+
     public ActiveRegion getActiveRegion() {
         return activeRegion;
     }
 
-    public Cuboid getCuboid() {
-        return cuboid;
+    public CuboidRegion getTerritory() {
+        return territory;
     }
 
     public RegionManager getManager() {
@@ -95,8 +113,8 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
         this.activeRegion = activeRegion;
     }
 
-    public void setCuboid(Cuboid cuboid) {
-        this.cuboid = cuboid;
+    public void setTerritory(CuboidRegion territory) {
+        this.territory = territory;
     }
 
     @Override
@@ -108,7 +126,7 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
 
     @Override
     public @NotNull UnaryOperator<String> replacePlaceholders() {
-        return s -> getCuboid().replacePlaceholders().apply(s)
+        return s -> getTerritory().replacePlaceholders().apply(s)
                 .replace(Placeholders.PLACEHOLDER_REGION_NAME, getName())
                 .replace(Placeholders.PLACEHOLDER_ACTION_EVENTS_SIZE, NumberUtil.format(this.getActiveRegion().getEventActions().size()))
                 ;
