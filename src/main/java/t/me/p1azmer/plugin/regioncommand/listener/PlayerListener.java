@@ -251,7 +251,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                     }
                 }
 
-                PlayerBlockBreakInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callAndReturn(new PlayerBlockBreakInRegionEvent(player, region, event.getBlock()));
+                PlayerBlockBreakInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerBlockBreakInRegionEvent(player, region, event.getBlock()));
                 if (customEventCaller.isCancelled()) {
                     event.setCancelled(true);
                 }

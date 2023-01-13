@@ -147,7 +147,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         if (region != null) {
             PlayerEnterRegionEvent enterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, region));
             if (enterRegionEvent.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                PlayerUtil.dispatchCommand(player, "spawn");
+                PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
                 player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-LOGIN_EVENT_SAFE_REGION-" + region.getId()));
             }
         }
@@ -166,7 +166,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
             PlayerMoveInRegionEvent moveFrom = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, fromRegion));
             PlayerMoveInRegionEvent moveTo = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, toRegion));
             if (moveFrom.isCancelled() && moveTo.isCancelled() || event.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                PlayerUtil.dispatchCommand(player, "spawn");
+                PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
                 player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-MOVE_EVENT_SAFE_REGION-" + toRegion.getId()));
             }
         }

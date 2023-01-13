@@ -20,7 +20,6 @@ public class MaterialCondition extends AbstractConditionValidator {
     protected boolean validate(@NotNull Player player, @NotNull ParameterResult result) {
         String name = (String) result.getValue(ParameterId.NAME);
         if (name == null) {
-            player.sendMessage("BREAK_MATERIAL: name is null");
             return true;
         }
         Material material = CollectionsUtil.getEnum(name, Material.class);
@@ -28,7 +27,6 @@ public class MaterialCondition extends AbstractConditionValidator {
             return true;
         Block block = player.getTargetBlock(4);
         if (block == null){
-            player.sendMessage("BREAK_MATERIAL: block is null");
             return true;
         }
         return block.getType().equals(material);

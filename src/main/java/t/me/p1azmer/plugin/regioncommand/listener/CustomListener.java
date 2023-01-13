@@ -55,13 +55,10 @@ public class CustomListener extends AbstractListener<RegPlugin> {
                     RestoreBlockEvent calledEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new RestoreBlockEvent(event, event.getEntity(), region, block.getState(), pair.second(), pair.third()));
                     if (calledEvent.isCancelled()) {
                         event.setCancelled(true);
-                        event.getEntity().sendMessage("EVENT RESTORE CANCELLED!");
-                    }else
-                        event.getEntity().sendMessage("EVENT RESTORE NOT CANCELLED!");
+                    }
                 }
             }
-        }else
-            event.getEntity().sendMessage("EVENT BLOCK IS NULL");
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
