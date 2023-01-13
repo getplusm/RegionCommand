@@ -9,7 +9,11 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
+import su.nightexpress.sunlight.api.SunLightAPI;
+import su.nightexpress.sunlight.modules.spawn.Spawn;
+import su.nightexpress.sunlight.modules.spawn.SpawnManager;
 import t.me.p1azmer.aves.engine.api.manager.AbstractListener;
+import t.me.p1azmer.aves.engine.hooks.Hooks;
 import t.me.p1azmer.aves.engine.utils.PlayerUtil;
 import t.me.p1azmer.aves.engine.utils.StringUtil;
 import t.me.p1azmer.plugin.regioncommand.Perm;
@@ -102,14 +106,14 @@ public class DetectListener extends AbstractListener<RegPlugin> {
 
         if (fromRegion == null && toRegion != null) {
             event.setCancelled(true);
-                PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterCuboidEvent(player, toRegion.getTerritory()));
-                PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterRegionEvent(player, toRegion));
-                if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
-                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
-                        player.teleport(from);
-                    }
-                }else
-                    event.setCancelled(false);
+            PlayerEnterCuboidEvent playerEnterCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterCuboidEvent(player, toRegion.getTerritory()));
+            PlayerEnterRegionEvent playerEnterRegionEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerEnterRegionEvent(player, toRegion));
+            if (playerEnterCuboidEvent.isCancelled() || playerEnterRegionEvent.isCancelled()) {
+                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                    player.teleport(from);
+                }
+            } else
+                event.setCancelled(false);
         } else if (fromRegion != null && toRegion == null) {
             event.setCancelled(true);
             PlayerLeaveCuboidEvent playerLeaveCuboidEvent = t.me.p1azmer.api.Events.callAndReturn(new PlayerLeaveCuboidEvent(player, fromRegion.getTerritory()));
@@ -118,7 +122,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
                 if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
                     player.teleport(from);
                 }
-            }else
+            } else
                 event.setCancelled(false);
         }
     }
@@ -147,7 +151,16 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         if (region != null) {
             PlayerEnterRegionEvent enterRegionEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerEnterRegionEvent(player, region));
             if (enterRegionEvent.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
+                if (Hooks.hasPlugin("PZUI")) {
+                    SpawnManager spawnManager = SunLightAPI.PLUGIN.getModuleManager().getSpawnManager();
+                    if (spawnManager != null) {
+                        Spawn spawn = spawnManager.getSpawnByDefault();
+                        if (spawn != null) {
+                            spawn.teleport(player);
+                        }
+                    }
+                } else
+                    PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
                 player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-LOGIN_EVENT_SAFE_REGION-" + region.getId()));
             }
         }
@@ -166,7 +179,16 @@ public class DetectListener extends AbstractListener<RegPlugin> {
             PlayerMoveInRegionEvent moveFrom = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, fromRegion));
             PlayerMoveInRegionEvent moveTo = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerMoveInRegionEvent(player, toRegion));
             if (moveFrom.isCancelled() && moveTo.isCancelled() || event.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
+                if (Hooks.hasPlugin("PZUI")) {
+                    SpawnManager spawnManager = SunLightAPI.PLUGIN.getModuleManager().getSpawnManager();
+                    if (spawnManager != null) {
+                        Spawn spawn = spawnManager.getSpawnByDefault();
+                        if (spawn != null) {
+                            spawn.teleport(player);
+                        }
+                    }
+                } else
+                    PlayerUtil.dispatchCommand(player, "[CONSOLE] spawn default " + player.getName());
                 player.sendMessage(StringUtil.color("&cВозможно, вы могли застрять в этом регионе. Мы принудительно телепортировали вас на спавн, чтобы избежать этого.\nЕсли это ошибка, сообщите администрации код: #PZ-RGCMD-MOVE_EVENT_SAFE_REGION-" + toRegion.getId()));
             }
         }

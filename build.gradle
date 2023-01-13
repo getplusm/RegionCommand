@@ -41,6 +41,7 @@ dependencies {
     compileOnly files('E:/TEST/1st AVES/plugins/service-1.0.jar')
     compileOnly files('E:/TEST/1st AVES/plugins/Titles-1.0.jar')
     compileOnly files('E:/TEST/1st AVES/plugins/PLAZMER-ENGINE-1.0.jar')
+    compileOnly files('E:/TEST/1st AVES/plugins/PZUI-1.0.jar')
 }
 
 publishing {
