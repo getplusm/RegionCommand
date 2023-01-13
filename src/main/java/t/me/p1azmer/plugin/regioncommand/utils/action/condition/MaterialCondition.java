@@ -1,6 +1,7 @@
 package t.me.p1azmer.plugin.regioncommand.utils.action.condition;
 
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.actions.condition.AbstractConditionValidator;
@@ -11,7 +12,7 @@ import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 public class MaterialCondition extends AbstractConditionValidator {
 
     public MaterialCondition() {
-        super("IS_MATERIAL");
+        super("BREAK_MATERIAL");
         registerParameter(ParameterId.NAME);
     }
 
@@ -19,11 +20,17 @@ public class MaterialCondition extends AbstractConditionValidator {
     protected boolean validate(@NotNull Player player, @NotNull ParameterResult result) {
         String name = (String) result.getValue(ParameterId.NAME);
         if (name == null) {
-            player.sendMessage("IS_MATERIAL: name is null");
+            player.sendMessage("BREAK_MATERIAL: name is null");
             return true;
         }
-        boolean bol = CollectionsUtil.getEnum(name, Material.class) != null;
-        player.sendMessage("IS_MATERIAL: check: " + (bol ? "not null" : "null"));
-        return CollectionsUtil.getEnum(name, Material.class) != null;
+        Material material = CollectionsUtil.getEnum(name, Material.class);
+        if (material == null)
+            return true;
+        Block block = player.getTargetBlock(4);
+        if (block == null){
+            player.sendMessage("BREAK_MATERIAL: block is null");
+            return true;
+        }
+        return block.getType().equals(material);
     }
 }

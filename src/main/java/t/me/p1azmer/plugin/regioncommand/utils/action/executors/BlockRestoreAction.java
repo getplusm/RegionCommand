@@ -9,6 +9,7 @@ import t.me.p1azmer.aves.engine.actions.parameter.ParameterId;
 import t.me.p1azmer.aves.engine.actions.parameter.ParameterResult;
 import t.me.p1azmer.aves.engine.actions.parameter.value.ParameterValueNumber;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
+import t.me.p1azmer.aves.engine.utils.MessageUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
 import t.me.p1azmer.plugin.regioncommand.api.type.Events;
@@ -28,15 +29,16 @@ public class BlockRestoreAction extends AbstractActionExecutor {
     protected void execute(@NotNull Player player, @NotNull ParameterResult result) {
         String name = (String) result.getValue(ParameterId.NAME);
         if (name == null) {
+            player.sendMessage("BLOCK_RESTORE: return but name is null.");
             return;
         }
-
 
         List<Material> materials = new ArrayList<>();
 
         for (String materialName : name.split(",")) {
             Material material = CollectionsUtil.getEnum(materialName, Material.class);
             if (material == null) {
+                player.sendMessage("BLOCK_RESTORE: return but material is null.");
                 continue;
             }
             materials.add(material);
@@ -57,11 +59,13 @@ public class BlockRestoreAction extends AbstractActionExecutor {
 
         ParameterValueNumber time = (ParameterValueNumber) result.getValue(ParameterId.AMOUNT);
         if (time == null) {
+            player.sendMessage("BLOCK_RESTORE: return but time is null.");
             return;
         }
 
         long timeValue = (long) time.getValue(0L);
         if (timeValue <= 0L) {
+            player.sendMessage("BLOCK_RESTORE: return but time is lover.");
             return;
         }
 
@@ -70,6 +74,7 @@ public class BlockRestoreAction extends AbstractActionExecutor {
 
         Region region = RegionAPI.PLUGIN.getManager().getRegion(location, 1);
         if (region == null) {
+            player.sendMessage("BLOCK_RESTORE: return but region is null.");
             return;
         }
 

@@ -46,7 +46,6 @@ public class CustomListener extends AbstractListener<RegPlugin> {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreakInRegion(PlayerBlockBreakInRegionEvent event) {
-//        Schedulers.sync().runLater(()-> {
         if (event.getBlock() != null) {
             Block block = event.getBlock();
             Region region = event.getRegion();
@@ -56,11 +55,13 @@ public class CustomListener extends AbstractListener<RegPlugin> {
                     RestoreBlockEvent calledEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new RestoreBlockEvent(event, event.getEntity(), region, block.getState(), pair.second(), pair.third()));
                     if (calledEvent.isCancelled()) {
                         event.setCancelled(true);
-                    }
+                        event.getEntity().sendMessage("EVENT RESTORE CANCELLED!");
+                    }else
+                        event.getEntity().sendMessage("EVENT RESTORE NOT CANCELLED!");
                 }
             }
-        }
-//        }, 20*3);
+        }else
+            event.getEntity().sendMessage("EVENT BLOCK IS NULL");
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -94,6 +95,8 @@ public class CustomListener extends AbstractListener<RegPlugin> {
         Material material = event.getBlockState().getType();
         Location location = event.getBlockState().getLocation();
         LivingEntity entity = event.getEntity();
+
+        entity.sendMessage("Event restore started.");
 
         TripleReturn<BlockState, Location, Long> pair = new TripleReturn<>(event.getBlockState(), location, event.getRespawnTime());
 

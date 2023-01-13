@@ -2,6 +2,7 @@ package t.me.p1azmer.plugin.regioncommand.listener;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.GameMode;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -195,13 +196,6 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
         if (this.manager.inRegion(player)) {
             Region region = this.manager.getRegion(player);
             if (region != null) {
-
-                PlayerBlockBreakInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerBlockBreakInRegionEvent(player, region, event.getBlock()));
-                if (customEventCaller.isCancelled()) {
-                    event.setCancelled(true);
-                    return;
-                }
-
                 ActiveRegion activeRegion = region.getActiveRegion();
 
                 EventAction eventAction = activeRegion.getEventActionByEvent(BLOCK_BREAK);
@@ -229,28 +223,6 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                         }
                     eventAction.getManipulator().processAll(player);
 
-                    /**
-                     * call the restore map
-                     */
-//                    if (event.getBlock() != null) {
-//                        player.sendMessage("block found!");
-//                        Block block = event.getBlock();
-//
-//                        if (Events.getMaterialsToRestore().containsKey(region)) {
-//                            player.sendMessage("restore found!");
-//                            Pair<List<Material>, Material> pair = Events.getMaterialsToRestore().get(region);
-//                            if (pair.getFirst().contains(block.getType())) {
-//                                player.sendMessage("BREAK BLOCK");
-//                                RestoreBlockEvent calledEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new RestoreBlockEvent(player, region, block, pair.getSecond()));
-//                                if (calledEvent.isCancelled()) {
-//                                    event.setCancelled(true);
-//                                    player.sendMessage("BREAK BLOCK: cancelled");
-//                                }
-//                            }
-//                        } else
-//                            player.sendMessage("restore not contains");
-//                    }
-
                     String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + BLOCK_BREAK.name();
                     eventAction.getManipulator().replace(s -> s
                             .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
@@ -258,11 +230,9 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
 
                     if (BLOCK_BREAK.cancelledEvents.contains(player)) {
                         event.setCancelled(true);
-                        return;
                     }
                     if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
                         event.setCancelled(true);
-                        return;
                     }
                 }
 
@@ -281,6 +251,10 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                     }
                 }
 
+                PlayerBlockBreakInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callAndReturn(new PlayerBlockBreakInRegionEvent(player, region, event.getBlock()));
+                if (customEventCaller.isCancelled()) {
+                    event.setCancelled(true);
+                }
                 plugin.getMessage(Lang.Events_Break).send(player); // message for event
             }
         }
