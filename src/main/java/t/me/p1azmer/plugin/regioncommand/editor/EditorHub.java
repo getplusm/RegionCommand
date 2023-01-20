@@ -107,6 +107,7 @@ public class EditorHub extends AbstractEditorMenuAuto<RegPlugin, RegPlugin, Regi
                 "&eЗажмите ШИФТ, чтобы удалить"
         ), 1);
         ItemUtil.replace(item, region.replacePlaceholders());
+        ItemUtil.replace(item, region.getTerritory().replacePlaceholders());
         ItemUtil.replace(item, region.getActiveRegion().replacePlaceholders());
         return item;
     }

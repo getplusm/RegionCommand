@@ -35,7 +35,7 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
 //            case CUBOID -> this.setTerritory(new CuboidTerritory(id, BlockVector3.at(location.getX(), location.getY(), location.getZ()), BlockVector3.at(location.getX(), location.getY(), location.getZ())));
 //            case POLYGON -> this.setTerritory(new PolygonalTerritory(id, BlockVector3.at(location.getX(), location.getY(), location.getZ()), BlockVector3.at(location.getX(), location.getY(), location.getZ())));
 //        }
-        this.setTerritory(new CuboidRegion(location, location)); // for one block action
+        this.setTerritory(CuboidRegion.empty()); // for one block action
 
         this.setName("&7" + id);
         this.setActiveRegion(new ActiveRegion(this));
@@ -70,8 +70,8 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
     public void onSave() {
         cfg.set("Name", this.getName());
         cfg.set("Territory.Type", this.getRegionType().getName());
-        cfg.set("Territory.Maximum", this.getTerritory().getPoint1());//this.getTerritory().getMaximumPoint().toParserString());
-        cfg.set("Territory.Minimum", this.getTerritory().getPoint2());//this.getTerritory().getMinimumPoint().toParserString());
+        cfg.set("Territory.Maximum", this.getTerritory().getLocationMax());//this.getTerritory().getMaximumPoint().toParserString());
+        cfg.set("Territory.Minimum", this.getTerritory().getLocationMin());//this.getTerritory().getMinimumPoint().toParserString());
         cfg.saveChanges();
         this.getActiveRegion().save();
     }
@@ -126,7 +126,7 @@ public class Region extends AbstractConfigHolder<RegPlugin> implements ICleanabl
 
     @Override
     public @NotNull UnaryOperator<String> replacePlaceholders() {
-        return s -> getTerritory().replacePlaceholders().apply(s)
+        return s -> s
                 .replace(Placeholders.PLACEHOLDER_REGION_NAME, getName())
                 .replace(Placeholders.PLACEHOLDER_ACTION_EVENTS_SIZE, NumberUtil.format(this.getActiveRegion().getEventActions().size()))
                 ;

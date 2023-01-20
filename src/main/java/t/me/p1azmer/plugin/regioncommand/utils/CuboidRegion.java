@@ -1,174 +1,106 @@
 package t.me.p1azmer.plugin.regioncommand.utils;
 
-import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import t.me.p1azmer.api.PlazmerCore;
 import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
+import t.me.p1azmer.aves.engine.utils.EffectUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.function.UnaryOperator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 public class CuboidRegion implements IPlaceholder {
 
     private int xMin;
     private int xMax;
+
     private int yMin;
     private int yMax;
+
     private int zMin;
     private int zMax;
-    private double xMinCentered;
-    private double xMaxCentered;
-    private double yMinCentered;
-    private double yMaxCentered;
-    private double zMinCentered;
-    private double zMaxCentered;
-    private World world;
 
-    private final List<ParticlePoint> particlePoints = new ArrayList<>();
+    private Location locMin;
+    private Location locMax;
 
-    public CuboidRegion(@NotNull Location min, @NotNull Location max) {
-        checkNotNull(min);
-        checkNotNull(max);
-        this.xMin = Math.min(min.getBlockX(), max.getBlockX());
-        this.xMax = Math.max(max.getBlockX(), min.getBlockX());
-        this.yMin = Math.min(min.getBlockY(), max.getBlockY());
-        this.yMax = Math.max(max.getBlockY(), min.getBlockY());
-        this.zMin = Math.min(min.getBlockZ(), max.getBlockZ());
-        this.zMax = Math.max(max.getBlockZ(), min.getBlockZ());
-        this.world = min.getWorld();
-        this.xMinCentered = this.xMin + 0.5;
-        this.xMaxCentered = this.xMax + 0.5;
-        this.yMinCentered = this.yMin + 0.5;
-        this.yMaxCentered = this.yMax + 0.5;
-        this.zMinCentered = this.zMin + 0.5;
-        this.zMaxCentered = this.zMax + 0.5;
+    private Location center;
+    private Visualizer visualizer;
 
-        calculateParticlesPoint();
+    @NotNull
+    public static CuboidRegion empty() {
+        return new CuboidRegion();
     }
 
-    public void setMin(Location pos) {
-        if (this.yMax <= pos.getBlockY()) {
-            throw new IllegalArgumentException(ChatColor.RED + "[REGION ERROR]: Minimal point of region has more that Y coordinate");
-        }
-        this.xMin = pos.getBlockX();
-        this.yMin = pos.getBlockY();
-        this.zMin = pos.getBlockZ();
-        this.xMinCentered = this.xMin + 0.5;
-        this.yMinCentered = this.yMin + 0.5;
-        this.zMinCentered = this.zMin + 0.5;
+    private CuboidRegion() {
+        this.xMin = 0;
+        this.xMax = 0;
+        this.yMin = 0;
+        this.yMax = 0;
+        this.zMin = 0;
+        this.zMax = 0;
     }
 
-    public void setMax(Location location) {
-        if (this.yMin >= location.getBlockY()) {
-            throw new IllegalArgumentException(ChatColor.RED + "[REGION ERROR]: Minimal point of region has more that Y coordinate");
-        }
-        this.xMax = location.getBlockX();
-        this.yMax = location.getBlockY();
-        this.zMax = location.getBlockZ();
-        this.xMaxCentered = this.xMax + 0.5;
-        this.yMaxCentered = this.yMax + 0.5;
-        this.zMaxCentered = this.zMax + 0.5;
-        calculateParticlesPoint();
+    public CuboidRegion(@NotNull Location from, @NotNull Location to) {
+        this.redefine(from, to);
     }
 
-    public void calculateParticlesPoint() {
-        Vector A = new Vector(0, 0, 0);
-        Vector B = new Vector(xMin, 0, 0);
-        Vector C = new Vector(0, 0, zMin);
-        Vector D = new Vector(0, yMax, 0);
-        Vector E = new Vector(0, yMax, zMax);
-        Vector F = new Vector(xMax, yMax, 0);
-        Vector G = new Vector(xMin, 0, zMin);
-        particlePoints.clear();
-        particlePoints.add(new ParticlePoint(A, B));
-        particlePoints.add(new ParticlePoint(A, C));
-        particlePoints.add(new ParticlePoint(A, D));
-        particlePoints.add(new ParticlePoint(C, D));
-        particlePoints.add(new ParticlePoint(B, D));
-        particlePoints.add(new ParticlePoint(C, B));
-        particlePoints.add(new ParticlePoint(B, C));
-        particlePoints.add(new ParticlePoint(D, C));
-        particlePoints.add(new ParticlePoint(D, B));
-        particlePoints.add(new ParticlePoint(E, B));
-        particlePoints.add(new ParticlePoint(F, C));
-        particlePoints.add(new ParticlePoint(G, D));
+    public void redefine(@NotNull Location from, @NotNull Location to) {
+        this.xMin = Math.min(from.getBlockX(), to.getBlockX());
+        this.yMin = Math.min(from.getBlockY(), to.getBlockY());
+        this.zMin = Math.min(from.getBlockZ(), to.getBlockZ());
+
+        this.xMax = Math.max(from.getBlockX(), to.getBlockX());
+        this.yMax = Math.max(from.getBlockY(), to.getBlockY());
+        this.zMax = Math.max(from.getBlockZ(), to.getBlockZ());
+
+        this.locMin = new Location(from.getWorld(), this.xMin, this.yMin, this.zMin);
+        this.locMax = new Location(from.getWorld(), this.xMax, this.yMax, this.zMax);
+
+        double cx = xMin + (xMax - xMin) / 2D;
+        double cy = yMin + (yMax - yMin) / 2D;
+        double cz = zMin + (zMax - zMin) / 2D;
+
+        this.center = new Location(from.getWorld(), cx, cy, cz);
+        this.visualizer = new Visualizer(this.locMin, this.locMax);
     }
 
-    public List<ParticlePoint> getParticlePoints() {
-        return particlePoints;
+    @NotNull
+    public Visualizer getVisualizer() {
+        return visualizer;
     }
 
-    public Iterator<Block> blockList() {
-        List<Block> bL = new ArrayList<>(this.getTotalBlockSize());
-        for (int x = this.xMin; x <= this.xMax; ++x) {
-            for (int y = this.yMin; y <= this.yMax; ++y) {
-                for (int z = this.zMin; z <= this.zMax; ++z) {
-                    Block b = this.world.getBlockAt(x, y, z);
-                    bL.add(b);
-                }
-            }
-        }
-        return bL.iterator();
+    public boolean isEmpty() {
+        return this.xMin == 0 && this.xMax == 0 && this.yMin == 0 && this.yMax == 0
+                && this.zMin == 0 && this.zMax == 0;
     }
 
-    public Location getCenter() {
-        return new Location(this.world, (this.xMax - this.xMin) / 2 + this.xMin, (this.yMax - this.yMin) / 2 + this.yMin, (this.zMax - this.zMin) / 2 + this.zMin);
-    }
+    public boolean contains(@NotNull Location location) {
+        if (this.isEmpty()) return false;
 
-    public double getDistance() {
-        return this.getPoint1().distance(this.getPoint2());
-    }
+        World world = location.getWorld();
+        if (world == null || !world.equals(this.locMin.getWorld())) return false;
 
-    public double getDistanceSquared() {
-        return this.getPoint1().distanceSquared(this.getPoint2());
-    }
+        int x = location.getBlockX();
+        int y = location.getBlockY();
+        int z = location.getBlockZ();
 
-    public int getHeight() {
-        return this.yMax - this.yMin + 1;
-    }
-
-    public Location getPoint1() {
-        return new Location(this.world, this.xMin, this.yMin, this.zMin);
-    }
-
-    public Location getPoint2() {
-        return new Location(this.world, this.xMax, this.yMax, this.zMax);
-    }
-
-    public Location getRandomLocation() {
-        final Random rand = new Random();
-        final int x = rand.nextInt(Math.abs(this.xMax - this.xMin) + 1) + this.xMin;
-        final int y = rand.nextInt(Math.abs(this.yMax - this.yMin) + 1) + this.yMin;
-        final int z = rand.nextInt(Math.abs(this.zMax - this.zMin) + 1) + this.zMin;
-        return new Location(this.world, x, y, z);
-    }
-
-    public int getTotalBlockSize() {
-        return this.getHeight() * this.getXWidth() * this.getZWidth();
-    }
-
-    public int getXWidth() {
-        return this.xMax - this.xMin + 1;
-    }
-
-    public int getZWidth() {
-        return this.zMax - this.zMin + 1;
+        return x >= this.xMin && x <= this.xMax
+                && y >= this.yMin && y <= this.yMax
+                && z >= this.zMin && z <= this.zMax;
     }
 
     public boolean isIn(final Location loc) {
-        return loc.getWorld() == this.world && loc.getBlockX() >= this.xMin && loc.getBlockX() <= this.xMax && loc.getBlockY() >= this.yMin && loc.getBlockY() <= this.yMax && loc
-                .getBlockZ() >= this.zMin && loc.getBlockZ() <= this.zMax;
+        return this.contains(loc);
     }
 
     public boolean isIn(final Player player) {
@@ -176,49 +108,124 @@ public class CuboidRegion implements IPlaceholder {
     }
 
     public boolean isInWithMarge(final Location loc, final double marge) {
-        return loc.getWorld() == this.world &&
-                loc.getX() >= this.xMinCentered - marge &&
-                loc.getX() <= this.xMaxCentered + marge &&
-                loc.getY() >= this.yMinCentered - marge &&
-                loc.getY() <= this.yMaxCentered + marge &&
-                loc.getZ() >= this.zMinCentered - marge &&
-                loc.getZ() <= this.zMaxCentered + marge;
+        return loc.getWorld() == this.center.getWorld() &&
+                loc.getX() >= (this.xMin + 0.5) - marge &&
+                loc.getX() <= (this.xMax + 0.5) + marge &&
+                loc.getY() >= (this.yMin + 0.5) - marge &&
+                loc.getY() <= (this.yMax + 0.5) + marge &&
+                loc.getZ() >= (this.zMin + 0.5) - marge &&
+                loc.getZ() <= (this.zMax + 0.5) + marge;
     }
 
-    public Vector getPostion(double blocksAway, Vector origin, Vector direction) {
-        return origin.clone().add(direction.clone().normalize().multiply(blocksAway));
-    }
+    @NotNull
+    public List<Block> getBlocks() {
+        if (this.isEmpty()) return Collections.emptyList();
 
-    public ArrayList<Vector> traverse(Vector origin, Vector direction) {
-        ArrayList<Vector> positions = new ArrayList<>();
-        for (double d = 0; d <= direction.length(); d += 3) { // 3 - blocks after next block
-            positions.add(getPostion(d, origin, direction));
+        List<Block> list = new ArrayList<>(this.getSize());
+        World world = this.center.getWorld();
+        if (world == null) return list;
+
+        for (int x = this.xMin; x <= this.xMax; ++x) {
+            for (int y = this.yMin; y <= this.yMax; ++y) {
+                for (int z = this.zMin; z <= this.zMax; ++z) {
+                    Block blockAt = world.getBlockAt(x, y, z);
+                    list.add(blockAt);
+                }
+            }
         }
-        return positions;
+
+        return list;
     }
 
     @Override
     public @NotNull UnaryOperator<String> replacePlaceholders() {
         return s -> s
-                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_MIN, "&6Мир: " + this.world.getName() + ", X=" + this.xMin + ", Y=" + this.yMin + ", Z=" + this.zMin)
-                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_MAX, "&6Мир: " + this.world.getName() + ", X=" + this.xMax + ", Y=" + this.yMax + ", Z=" + this.zMax)
+                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_MIN, this.center == null ? "&cНе установлен" : "&6Мир: " + this.center.getWorld().getName() + ", X=" + this.xMin + ", Y=" + this.yMin + ", Z=" + this.zMin)
+                .replace(Placeholders.PLACEHOLDER_REGION_CUBOID_MAX, this.center == null ? "&cНе установлен" : "&6Мир: " + this.center.getWorld().getName() + ", X=" + this.xMax + ", Y=" + this.yMax + ", Z=" + this.zMax)
                 ;
     }
 
-    public static class ParticlePoint {
-        final Vector origin, direction;
+    public int getSize() {
+        return (this.xMax - this.xMin + 1) * (this.yMax - this.yMin + 1) * (this.zMax - this.zMin + 1);
+    }
 
-        ParticlePoint(Vector origin, Vector direction) {
-            this.origin = origin;
-            this.direction = direction;
+    @NotNull
+    public Location getLocationMin() {
+        return this.locMin;
+    }
+
+    @NotNull
+    public Location getLocationMax() {
+        return this.locMax;
+    }
+
+    @NotNull
+    public Location getCenter() {
+        return this.center;
+    }
+
+    public static class Visualizer {
+
+        private final ArrayList<Vector[]> sides;
+        private final Location min;
+
+        public Visualizer(@NotNull Location min, @NotNull Location max) {
+            this.sides = new ArrayList<>();
+            this.min = min;
+
+            double length = max.getBlockX() - min.getBlockX() + 1D;
+            double height = max.getBlockY() - min.getBlockY() + 1D;
+            double width = max.getBlockZ() - min.getBlockZ() + 1D;
+
+            Vector A = new Vector(0, 0, 0);
+            Vector B = new Vector(length, 0, 0);
+            Vector C = new Vector(0, 0, width);
+            Vector D = new Vector(0, height, 0);
+            Vector E = new Vector(0, height, width);
+            Vector F = new Vector(length, height, 0);
+            Vector G = new Vector(length, 0, width);
+            sides.add(new Vector[]{A, B});
+            sides.add(new Vector[]{A, C});
+            sides.add(new Vector[]{A, D});
+            sides.add(new Vector[]{C, D});
+            sides.add(new Vector[]{B, D});
+            sides.add(new Vector[]{C, B});
+            sides.add(new Vector[]{B, C});
+            sides.add(new Vector[]{D, C});
+            sides.add(new Vector[]{D, B});
+            sides.add(new Vector[]{E, B});
+            sides.add(new Vector[]{F, C});
+            sides.add(new Vector[]{G, D});
         }
 
-        public Vector getDirection() {
-            return direction;
+        @NotNull
+        public Vector getPostion(double blocksAway, @NotNull Vector origin, @NotNull Vector direction) {
+            return origin.clone().add(direction.clone().normalize().multiply(blocksAway));
         }
 
-        public Vector getOrigin() {
-            return origin;
+        @NotNull
+        public ArrayList<Vector> traverse(@NotNull Vector origin, @NotNull Vector direction) {
+            ArrayList<Vector> positions = new ArrayList<>();
+            for (double add = 0; add <= direction.length(); add += 0.1) {
+                positions.add(this.getPostion(add, origin, direction));
+            }
+            return positions;
+        }
+
+        public void draw(@NotNull Player player) {
+            World world = this.min.getWorld();
+            if (world == null) return;
+
+            Particle particle = Particle.REDSTONE;
+            String data = "255,0,0";
+
+            for (Vector[] point : this.sides) {
+                for (Vector position : this.traverse(point[0], point[1])) {
+                    position = this.min.toVector().clone().add(position);
+                    Location location = position.toLocation(world);
+                    EffectUtil.playEffect(player, location, particle.name(), data, 0, 0, 0, 0.1, 0);
+                }
+            }
         }
     }
 }

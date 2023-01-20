@@ -87,13 +87,7 @@ public class CustomListener extends AbstractListener<RegPlugin> {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRestoreBlock(RestoreBlockEvent event) {
-
-        Region region = event.getRegion();
-        Material material = event.getBlockState().getType();
         Location location = event.getBlockState().getLocation();
-        LivingEntity entity = event.getEntity();
-
-        entity.sendMessage("Event restore started.");
 
         TripleReturn<BlockState, Location, Long> pair = new TripleReturn<>(event.getBlockState(), location, event.getRespawnTime());
 

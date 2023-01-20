@@ -16,6 +16,7 @@ import t.me.p1azmer.aves.engine.utils.StringUtil;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
+import t.me.p1azmer.plugin.regioncommand.utils.CuboidRegion;
 
 import java.util.Map;
 
@@ -24,13 +25,17 @@ public class EditorRegion extends AbstractEditorMenu<RegPlugin, Region> {
         super(region.getManager().plugin(), region, "Настройка региона " + region.getId(), 9);
         EditorInput<Region, EditorType> input = (player, reg, type, e) -> {
             String msg = StringUtil.color(e.getMessage());
+            CuboidRegion cuboidRegion = reg.getTerritory();
             switch (type) {
                 case REGION_CHANGE_NAME -> region.setName(msg);
                 case REGION_CHANGE_CUBOID_MIN -> {
                     if (msg.equalsIgnoreCase("set")) {
                         try {
-                            reg.getTerritory().setMin(player.getLocation());
-                        }catch (Exception exception) {
+                            if (cuboidRegion.getLocationMax() != null)
+                                reg.setTerritory(new CuboidRegion(player.getLocation(), cuboidRegion.getLocationMax()));
+                            else
+                                reg.setTerritory(new CuboidRegion(player.getLocation(), player.getLocation()));
+                        } catch (Exception exception) {
                             player.sendMessage(exception.getMessage());
                             return false;
                         }
@@ -41,8 +46,11 @@ public class EditorRegion extends AbstractEditorMenu<RegPlugin, Region> {
                 case REGION_CHANGE_CUBOID_MAX -> {
                     if (msg.equalsIgnoreCase("set")) {
                         try {
-                            reg.getTerritory().setMax(player.getLocation());
-                        }catch (Exception exception) {
+                            if (cuboidRegion.getLocationMin() != null)
+                                reg.setTerritory(new CuboidRegion(cuboidRegion.getLocationMin(), player.getLocation()));
+                            else
+                                reg.setTerritory(new CuboidRegion(player.getLocation(), player.getLocation()));
+                        } catch (Exception exception) {
                             player.sendMessage(exception.getMessage());
                             return false;
                         }
@@ -81,7 +89,7 @@ public class EditorRegion extends AbstractEditorMenu<RegPlugin, Region> {
                             region.getManager().getRegionShown().putIfAbsent(player, region);
                         else
                             region.getManager().getRegionShown().remove(player, region);
-                        player.sendMessage("Показываю кубоид региона.");
+                        player.sendMessage(region.getManager().getRegionShown().containsKey(player) ? "Не показываю регион кубоида" : "Показываю регион кубоида");
                     }
                 }
             }

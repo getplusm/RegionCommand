@@ -2,7 +2,6 @@ package t.me.p1azmer.plugin.regioncommand.task;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +43,8 @@ public class RestoreBlockTask extends AbstractTask<RegPlugin> {
         for (TripleReturn<BlockState, Location, Long> pair : new ArrayList<>(this.manager.getCustomListener().getBlockRestores())) {
             BlockState block = pair.first();
             Location location = pair.second();
+            if (!location.getChunk().isLoaded())
+                location.getChunk().load();
             long respawnTime = pair.third();
 
             if (!cache.containsKey(location))
