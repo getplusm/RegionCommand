@@ -2,6 +2,7 @@ package t.me.p1azmer.plugin.regioncommand.listener;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -18,10 +19,8 @@ import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
 import t.me.p1azmer.plugin.regioncommand.api.EventAction;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamageEntityInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamagePlayerInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerTakeByPlayerDamageInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerTakeDamageInRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.RegionEvents;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.*;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.use.PlayerDropItemInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.use.PlayerPickUpItemInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
@@ -208,69 +207,131 @@ public class PhysicalListener extends AbstractListener<RegPlugin> {
                 Region damagerRegion = this.manager.getRegion(entityLocation);
                 if (region != null) {
                     if (damagerRegion != null && damagerRegion.equals(region)) {
-                        PlayerDamageEntityInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerDamageEntityInRegionEvent(player, region));
-                        if (customEventCaller.isCancelled()) {
-                            event.setCancelled(true);
-                            return;
-                        }
-
-                        ActiveRegion activeRegion = region.getActiveRegion();
-                        EventAction eventAction = activeRegion.getEventActionByEvent(DAMAGE_ENTITY);
-                        if (eventAction != null) {
-                            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
-                                JPermission permission = eventAction.getPermission();
-                                if (permission != null && !player.hasPermission(permission)) {
-                                    plugin.getMessage(Lang.Permission_Event_Damage_Entity).send(player);
-                                    event.setCancelled(true);
-                                    return;
-                                }
+                        if (event.getEntity() instanceof Animals) {
+                            RegionEvents customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerDamageAnimalsInRegionEvent(player, region));
+                            if (customEventCaller.isCancelled()) {
+                                event.setCancelled(true);
+                                return;
                             }
-                            int time = eventAction.getCooldown();
-                            if (time > 0)
-                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + DAMAGE_ENTITY.name(), time)) {
-                                    if (eventAction.getLangMessage() != null) {
-                                        eventAction.getLangMessage()
-                                                .replace("%time%", time)
-                                                .replace("%time_correct%", TimeUtil.leftTime(time))
-                                                .send(player);
+
+                            ActiveRegion activeRegion = region.getActiveRegion();
+                            EventAction eventAction = activeRegion.getEventActionByEvent(DAMAGE_ANIMAL);
+                            if (eventAction != null) {
+                                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                    JPermission permission = eventAction.getPermission();
+                                    if (permission != null && !player.hasPermission(permission)) {
+                                        plugin.getMessage(Lang.Permission_Event_Damage_Entity).send(player);
+                                        event.setCancelled(true);
+                                        return;
                                     }
+                                }
+                                int time = eventAction.getCooldown();
+                                if (time > 0)
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + DAMAGE_ANIMAL.name(), time)) {
+                                        if (eventAction.getLangMessage() != null) {
+                                            eventAction.getLangMessage()
+                                                    .replace("%time%", time)
+                                                    .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                    .send(player);
+                                        }
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                eventAction.getManipulator().processAll(player);
+
+                                String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + DAMAGE_ANIMAL.name();
+                                eventAction.getManipulator().replace(s -> s
+                                        .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                );
+
+                                if (DAMAGE_ANIMAL.cancelledEvents.contains(player)) {
                                     event.setCancelled(true);
                                     return;
                                 }
-                            eventAction.getManipulator().processAll(player);
+                                if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                                if (customEventCaller.isCancelled() || event.isCancelled()){
+                                    return;
+                                }
+                            }
 
-                            String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + DAMAGE_ENTITY.name();
-                            eventAction.getManipulator().replace(s -> s
-                                    .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
-                            );
+                            int time = activeRegion.getCooldowns().getOrDefault(DAMAGE_ANIMAL, -1);
+                            if (time > 0) {
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_TAKE_DAMAGE_PLAYER", time)) {
+                                    plugin.getMessage(Lang.Cooldown_Event_Damage_Entity)
+                                            .replace("%time%", time)
+                                            .replace("%time_correct%", TimeUtil.leftTime(time))
+                                            .send(player);
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                            }
 
-                            if (DAMAGE_ENTITY.cancelledEvents.contains(player)) {
+                            customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerDamageAggressiveInRegionEvent(player, region));
+                            if (customEventCaller.isCancelled()) {
                                 event.setCancelled(true);
                                 return;
                             }
-                            if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                event.setCancelled(true);
-                                return;
+
+                            activeRegion = region.getActiveRegion();
+                            eventAction = activeRegion.getEventActionByEvent(DAMAGE_AGGRESSIVE);
+                            if (eventAction != null) {
+                                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                    JPermission permission = eventAction.getPermission();
+                                    if (permission != null && !player.hasPermission(permission)) {
+                                        plugin.getMessage(Lang.Permission_Event_Damage_Entity).send(player);
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                                time = eventAction.getCooldown();
+                                if (time > 0)
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + DAMAGE_AGGRESSIVE.name(), time)) {
+                                        if (eventAction.getLangMessage() != null) {
+                                            eventAction.getLangMessage()
+                                                    .replace("%time%", time)
+                                                    .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                    .send(player);
+                                        }
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                eventAction.getManipulator().processAll(player);
+
+                                String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + DAMAGE_AGGRESSIVE.name();
+                                eventAction.getManipulator().replace(s -> s
+                                        .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                );
+
+                                if (DAMAGE_AGGRESSIVE.cancelledEvents.contains(player)) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                                if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
+                            }
+
+                            time = activeRegion.getCooldowns().getOrDefault(DAMAGE_AGGRESSIVE, -1);
+                            if (time > 0) {
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_TAKE_DAMAGE_PLAYER", time)) {
+                                    plugin.getMessage(Lang.Cooldown_Event_Damage_Entity)
+                                            .replace("%time%", time)
+                                            .replace("%time_correct%", TimeUtil.leftTime(time))
+                                            .send(player);
+                                    event.setCancelled(true);
+                                    return;
+                                }
                             }
                         }
-
-                        int time = activeRegion.getCooldowns().getOrDefault(DAMAGE_ENTITY, -1);
-                        if (time > 0) {
-                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_TAKE_DAMAGE_PLAYER", time)) {
-                                plugin.getMessage(Lang.Cooldown_Event_Damage_Entity)
-                                        .replace("%time%", time)
-                                        .replace("%time_correct%", TimeUtil.leftTime(time))
-                                        .send(player);
-                                event.setCancelled(true);
-                                return;
-                            }
-                        }
-
-                        plugin.getMessage(Lang.Events_Damage_Entity).send(player); // message for event
                     }
                 }
             }
         }
+
     }
 
     @EventHandler

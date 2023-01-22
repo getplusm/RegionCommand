@@ -3,21 +3,18 @@ package t.me.p1azmer.plugin.regioncommand.api.type;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import t.me.p1azmer.api.returns.TripleReturn;
-import t.me.p1azmer.aves.engine.utils.Pair;
+import t.me.p1azmer.aves.engine.utils.ItemUtil;
 import t.me.p1azmer.aves.engine.utils.collections.AutoRemovalCollection;
-import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
+import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.RegionEvents;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.block.PlayerBlockBreakInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.block.PlayerBlockPlaceInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.block.RestoreBlockEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamageEntityInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamagePlayerInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerTakeByPlayerDamageInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerTakeDamageInRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.*;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.entity.EntityCollisionInRegion;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.entity.EntityTakeDamageFromBlockInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.entity.EntityTakeDamageFromLavaInRegionEvent;
@@ -30,102 +27,106 @@ import java.util.concurrent.TimeUnit;
 
 public enum Events {
 
-    ENTER(Material.BIRCH_DOOR),
-    LEAVE(Material.IRON_DOOR),
-    MOVE(Material.LEATHER_BOOTS),
-    JUMP(Material.FEATHER),
-    SHIFT_UP(Material.LEATHER_LEGGINGS),
-    SHIFT_DOWN(Material.DIAMOND_LEGGINGS),
-    //INSIDE(Material.DIRT), // like move?
-    LMB(Material.BIRCH_BUTTON),
-    RMB(Material.ACACIA_BUTTON),
-    COMMANDS(Material.COMMAND_BLOCK),
-    BLOCK_PLACE(Material.DIRT_PATH),
-    BLOCK_BREAK(Material.WOODEN_PICKAXE),
+    ENTER(new ItemStack(Material.BIRCH_DOOR)),
+    LEAVE(new ItemStack(Material.IRON_DOOR)),
+    MOVE(new ItemStack(Material.LEATHER_BOOTS)),
+    JUMP(new ItemStack(Material.SLIME_BLOCK)),
+    SHIFT_UP(new ItemStack(Material.LEATHER_LEGGINGS)),
+    SHIFT_DOWN(new ItemStack(Material.DIAMOND_LEGGINGS)),
+    //INSIDE(ItemUtil.returnSkullTexture(new ItemStack(Material.DIRT), // like move, "?))
+    LMB(new ItemStack(Material.BIRCH_BUTTON)),
+    RMB(new ItemStack(Material.ACACIA_BUTTON)),
+    COMMANDS(new ItemStack(Material.COMMAND_BLOCK)),
+    BLOCK_PLACE(new ItemStack(Material.DIRT_PATH)),
+    BLOCK_BREAK(new ItemStack(Material.WOODEN_PICKAXE)),
     /**
      * disable damage to any player
      */
-    DAMAGE_PLAYER(Material.DIAMOND_SWORD),
+    DAMAGE_PLAYER(new ItemStack(Material.DIAMOND_SWORD)),
     /**
      * disable damage to any entity
      */
-    DAMAGE_ENTITY(Material.WOODEN_SWORD),
-    TAKE_DAMAGE(Material.SHIELD),
+    DAMAGE_AGGRESSIVE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThhNjg4NDQ5N2RlMTkxNTkyZWM0MmJkZGFlNTBlYmU3NWVkYmUyNDY4Yjk2ODczODI2MDk1MzBkNDE3MWExMSJ9fX0=")),
+    DAMAGE_ANIMAL(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzBmNTAzOTRjNmQ3ZGJjMDNlYTU5ZmRmNTA0MDIwZGM1ZDY1NDhmOWQzYmM5ZGNhYzg5NmJiNWNhMDg1ODdhIn19fQ==")),
+    TAKE_DAMAGE(new ItemStack(Material.SHIELD)),
     /**
      * prevent all damage from player
      */
-    TAKE_DAMAGE_PLAYER(Material.SHIELD),
+    TAKE_DAMAGE_PLAYER(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTNhMzk2MGM4Nzk0NzQwMTdjMGNhM2M4MGY2ZWU3M2NmODg2ZTAwZTg5YzkwMmEzZWU4OTNkZDI4NDk1MzVjMCJ9fX0=")),
 
     /**
      * prevent damage from all collision blocks
      */
 
-    TAKE_DAMAGE_FROM_BLOCK(Material.IRON_BLOCK),
+    TAKE_DAMAGE_FROM_BLOCK(new ItemStack(Material.IRON_BLOCK)),
     /**
      * prevent damage from lava
      */
-    TAKE_DAMAGE_FROM_LAVA(Material.LAVA_BUCKET),
+    TAKE_DAMAGE_FROM_LAVA(new ItemStack(Material.LAVA_BUCKET)),
 
 
     /**
      * disable pickup all items
      */
-    PICKUP_ITEMS(Material.HOPPER),
+    PICKUP_ITEMS(new ItemStack(Material.HOPPER)),
 
     /**
      * disable drop any items
      */
-    DROP_ITEMS(Material.WATER_BUCKET),
-    HUNGER(Material.BEEF),
+    DROP_ITEMS(new ItemStack(Material.DISPENSER)),
+    HUNGER(new ItemStack(Material.BEEF)),
 
     /**
      * regen HP
      */
-    REGEN_HP(Material.POTION),
+    REGEN_HP(new ItemStack(Material.POTION)),
     /**
      * regen Hunger
      */
-    REGEN_HUNGER(Material.BEETROOT_SOUP),
+    REGEN_HUNGER(new ItemStack(Material.BEETROOT_SOUP)),
 
-    SPRINT(Material.FEATHER),
+    SPRINT(new ItemStack(Material.FEATHER)),
     /**
      * we are cant block respawn, but this for Action section methods
      */
 
-    RESPAWN(Material.RED_BED),
+    RESPAWN(new ItemStack(Material.RED_BED)),
 
     /**
      * disable collision
      */
-    COLLISION(Material.OAK_FENCE),
+    COLLISION(new ItemStack(Material.OAK_FENCE)),
 
     /**
      * open chests
      */
-    OPEN_CHEST(Material.CHEST),
-    OPEN_ENDER_CHEST(Material.ENDER_CHEST),
+    OPEN_CHEST(new ItemStack(Material.CHEST)),
+    OPEN_ENDER_CHEST(new ItemStack(Material.ENDER_CHEST)),
 
     /**
      * prevent use any items. Like button, stove etc.
      */
-    USE(Material.STONE_BUTTON),
+    LEFT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjZkYWI3MjcxZjRmZjA0ZDU0NDAyMTkwNjdhMTA5YjVjMGMxZDFlMDFlYzYwMmMwMDIwNDc2ZjdlYjYxMjE4MCJ9fX0=")),
+    RIGHT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjJmM2EyZGZjZTBjM2RhYjdlZTEwZGIzODVlNTIyOWYxYTM5NTM0YThiYTI2NDYxNzhlMzdjNGZhOTNiIn19fQ==")),
+    LEFT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0=")),
+    RIGHT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjgyYWQxYjljYjRkZDIxMjU5YzBkNzVhYTMxNWZmMzg5YzNjZWY3NTJiZTM5NDkzMzgxNjRiYWM4NGE5NmUifX19")),
 
-    DEATH(Material.PLAYER_HEAD),
+    DEATH(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0")),
     ;
 
-    private final Material material;
+    private final ItemStack item;
 
-    Events(Material material) {
-        this.material = material;
+    Events(ItemStack item) {
+        this.item = item;
     }
 
-    public Material getMaterial() {
-        return material;
+    public ItemStack getItem() {
+        return item;
     }
 
 
-    public String getName(RegPlugin plugin) {
-        return plugin.getLangManager().getEnum(this);
+    public String getName() {
+        return RegionAPI.PLUGIN.getLangManager().getEnum(this);
     }
 
     public Collection<LivingEntity> cancelledEvents = AutoRemovalCollection.newHashSet(20, TimeUnit.MILLISECONDS);
@@ -158,11 +159,15 @@ public enum Events {
             case SHIFT_DOWN -> new PlayerShiftDOWNInRegionEvent(player, region);
             case TAKE_DAMAGE -> new PlayerTakeDamageInRegionEvent(player, region);
             case PICKUP_ITEMS -> new PlayerPickUpItemInRegionEvent(player, region);
-            case DAMAGE_ENTITY -> new PlayerDamageEntityInRegionEvent(player, region);
+            case DAMAGE_AGGRESSIVE -> new PlayerDamageAggressiveInRegionEvent(player, region);
+            case DAMAGE_ANIMAL -> new PlayerDamageAnimalsInRegionEvent(player, region);
             case DAMAGE_PLAYER -> new PlayerDamagePlayerInRegionEvent(player, region);
             case TAKE_DAMAGE_PLAYER -> new PlayerTakeByPlayerDamageInRegionEvent(player, region);
             case HUNGER -> new PlayerHungerInRegionEvent(player, region);
-            case USE -> new PlayerUseInRegionEvent(player, region);
+            case LEFT_USE -> new PlayerLeftUseInRegionEvent(player, region);
+            case RIGHT_USE -> new PlayerRightUseInRegionEvent(player, region);
+            case LEFT_USE_ON_SHIFT -> new PlayerLeftUseOnShiftInRegionEvent(player, region);
+            case RIGHT_USE_ON_SHIFT -> new PlayerRightUseOnShiftInRegionEvent(player, region);
             case SPRINT -> new PlayerSprintInRegionEvent(player, region);
             case RESPAWN -> new PlayerRespawnInRegionEvent(player, region);
             case REGEN_HP -> new PlayerRegenHPInRegionEvent(player, region);

@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import t.me.p1azmer.aves.engine.actions.ActionManipulator;
 import t.me.p1azmer.aves.engine.actions.ActionSection;
+import t.me.p1azmer.aves.engine.api.config.JOption;
 import t.me.p1azmer.aves.engine.api.lang.LangMessage;
 import t.me.p1azmer.aves.engine.api.manager.IEditable;
 import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
@@ -22,6 +23,9 @@ public class EventAction implements IPlaceholder, IEditable {
     private final ActiveRegion activeRegion;
     private final Events events;
     private LangMessage langMessage;
+    private LangMessage permissionDenyMessage;
+    private LangMessage cooldownMessage;
+    private LangMessage actionMessage;
     private JPermission permission;
     private int cooldown;
     private boolean cancelled;
@@ -39,6 +43,18 @@ public class EventAction implements IPlaceholder, IEditable {
         this.cooldown = cooldown;
         this.manipulator = manipulator;
         this.cancelled = false;
+        this.cooldownMessage = new JOption<>("Messages.Cooldown",
+                (jyml, s, langMessage1) -> langMessage1,
+                new LangMessage(activeRegion.plugin(), "&cНе делайте это так быстро, ожидайте %time% %time_correct%"),
+                "Сообщение для игрока, если у него задержка на выполение ивент", "%time% - выводит число секунд", "%time_correct% - выводит корректный таймер").get();
+        this.permissionDenyMessage = new JOption<>("Messages.Permission.Deny",
+                (jyml, s, langMessage1) -> langMessage1,
+                new LangMessage(activeRegion.plugin(), "&cУ Вас нет права на это"),
+                "Сообщение для игрока, если у нет права на выполение ивента").get();
+        this.actionMessage = new JOption<>("Messages.Action.Allow",
+                (jyml, s, langMessage1) -> langMessage1,
+                new LangMessage(activeRegion.plugin(), "&cВыполение ивента &6" + events.getName()),
+                "Сообщение при выполнении ивента").get();
     }
 
     public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator, boolean cancelled) {
@@ -77,6 +93,22 @@ public class EventAction implements IPlaceholder, IEditable {
 
     public LangMessage getLangMessage() {
         return langMessage;
+    }
+
+    public LangMessage getPermissionDenyMessage() {
+        return permissionDenyMessage;
+    }
+
+    public LangMessage getCooldownMessage() {
+        return cooldownMessage;
+    }
+
+    public LangMessage getActionMessage() {
+        return actionMessage;
+    }
+
+    public ActionSelector getActionSelector() {
+        return actionSelector;
     }
 
     public ActionManipulator getManipulator() {
@@ -132,7 +164,7 @@ public class EventAction implements IPlaceholder, IEditable {
                 .replace(Placeholders.PLACEHOLDER_EVENTS_CANCELLED, LangManager.getBoolean(this.cancelled))
                 .replace(Placeholders.PLACEHOLDER_EVENTS_LANGKEY, this.langMessage == null ? "Нет" : this.langMessage.getRaw())
                 .replace(Placeholders.PLACEHOLDER_EVENTS_PERMISSION, this.permission == null ? "Нет" : this.permission.getName())
-                .replace(Placeholders.PLACEHOLDER_EVENTS_NAME, this.events.getName(getActiveRegion().getRegion().plugin()))
+                .replace(Placeholders.PLACEHOLDER_EVENTS_NAME, this.events.getName())
                 ;
     }
 }

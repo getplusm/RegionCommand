@@ -3,6 +3,7 @@ package t.me.p1azmer.plugin.regioncommand.editor.action.events;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.aves.engine.api.editor.EditorButtonType;
 import t.me.p1azmer.aves.engine.api.editor.EditorInput;
@@ -82,8 +83,14 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
 
     @Override
     protected @NotNull ItemStack getObjectStack(@NotNull Player player, @NotNull EventAction eventAction) {
-        ItemStack item = EditorType.EVENTS_OBJECT.getItem();
-        item.setType(eventAction.getEvents().getMaterial());
+        ItemStack item = eventAction.getEvents().getItem();
+        ItemStack object = EditorType.EVENTS_OBJECT.getItem();
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(ItemUtil.getItemName(object));
+            meta.setLore(ItemUtil.getLore(object));
+            item.setItemMeta(meta);
+        }
         ItemUtil.replace(item, eventAction.replacePlaceholders());
         return item;
     }

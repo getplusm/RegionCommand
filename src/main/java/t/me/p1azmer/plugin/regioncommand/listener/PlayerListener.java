@@ -2,8 +2,10 @@ package t.me.p1azmer.plugin.regioncommand.listener;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.GameMode;
-import org.bukkit.block.BlockState;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
@@ -26,10 +28,8 @@ import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.block.PlayerBlockBreakInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.block.PlayerBlockPlaceInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.*;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.player.PlayerCommandInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.use.PlayerHungerInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.use.PlayerLMBInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.events.region.use.PlayerRMBInRegionEvent;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.player.*;
+import t.me.p1azmer.plugin.regioncommand.api.events.region.use.*;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
@@ -927,34 +927,763 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
 
     @EventHandler
     public void onSprint(PlayerToggleSprintEvent event) {
+        if (event.isCancelled()) return;
+        Player player = event.getPlayer();
+        if (this.manager.inRegion(player)) {
+            Region region = this.manager.getRegion(player);
+            if (region != null) {
+                ActiveRegion activeRegion = region.getActiveRegion();
 
+                EventAction eventAction = activeRegion.getEventActionByEvent(SPRINT);
+                if (eventAction != null) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                        JPermission permission = eventAction.getPermission();
+                        if (permission != null && !player.hasPermission(permission)) {
+                            if (eventAction.getPermissionDenyMessage() != null)
+                                eventAction.getPermissionDenyMessage().send(player);
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
+                    int time = eventAction.getCooldown();
+                    if (time > 0)
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + SPRINT.name(), time)) {
+                            if (eventAction.getCooldownMessage() != null) {
+                                eventAction.getCooldownMessage()
+                                        .replace("%time%", time)
+                                        .replace("%time_correct%", TimeUtil.leftTime(time))
+                                        .send(player);
+                            }
+                            event.setCancelled(true);
+                            return;
+                        }
+                    eventAction.getManipulator().processAll(player);
+
+                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + SPRINT.name();
+                    eventAction.getManipulator().replace(s -> s
+                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                    );
+
+                    if (SPRINT.cancelledEvents.contains(player)) {
+                        event.setCancelled(true);
+                    }
+                    if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                        event.setCancelled(true);
+                    }
+                }
+
+                boolean cancelled = activeRegion.getCancelled().getOrDefault(SPRINT, false);
+                event.setCancelled(cancelled);
+
+                int time = activeRegion.getCooldowns().getOrDefault(SPRINT, -1);
+                if (time > 0) {
+                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + SPRINT.name(), time)) {
+                        // TODO message
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+
+                PlayerSprintInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerSprintInRegionEvent(player, region));
+                if (customEventCaller.isCancelled()) {
+                    event.setCancelled(true);
+                }
+                if (eventAction != null && eventAction.getActionMessage() != null)
+                    eventAction.getActionMessage().send(player);
+            }
+        }
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
+        if (event.isCancelled()) return;
+        Player player = event.getPlayer();
+        if (this.manager.inRegion(player)) {
+            Region region = this.manager.getRegion(player);
+            if (region != null) {
+                ActiveRegion activeRegion = region.getActiveRegion();
 
+                EventAction eventAction = activeRegion.getEventActionByEvent(DEATH);
+                if (eventAction != null) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                        JPermission permission = eventAction.getPermission();
+                        if (permission != null && !player.hasPermission(permission)) {
+                            if (eventAction.getPermissionDenyMessage() != null)
+                                eventAction.getPermissionDenyMessage().send(player);
+                            event.setCancelled(true); // no permission for die? ;c
+                            return;
+                        }
+                    }
+
+                    int time = eventAction.getCooldown();
+                    if (time > 0)
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + DEATH.name(), time)) {
+                            if (eventAction.getCooldownMessage() != null) {
+                                eventAction.getCooldownMessage()
+                                        .replace("%time%", time)
+                                        .replace("%time_correct%", TimeUtil.leftTime(time))
+                                        .send(player);
+                            }
+                            event.setCancelled(true);
+                            return;
+                        }
+                    eventAction.getManipulator().processAll(player);
+
+                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + DEATH.name();
+                    eventAction.getManipulator().replace(s -> s
+                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                    );
+
+                    if (DEATH.cancelledEvents.contains(player)) {
+                        event.setCancelled(true);
+                    }
+                    if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                        event.setCancelled(true);
+                    }
+                }
+
+                boolean cancelled = activeRegion.getCancelled().getOrDefault(DEATH, false);
+                event.setCancelled(cancelled);
+
+                int time = activeRegion.getCooldowns().getOrDefault(DEATH, -1);
+                if (time > 0) {
+                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + DEATH.name(), time)) {
+                        // TODO message
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+
+                PlayerDeathInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerDeathInRegionEvent(player, region));
+                if (customEventCaller.isCancelled()) {
+                    event.setCancelled(true);
+                }
+                if (eventAction != null && eventAction.getActionMessage() != null)
+                    eventAction.getActionMessage().send(player);
+            }
+        }
     }
 
     @EventHandler
     public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        if (this.manager.inRegion(player)) {
+            Region region = this.manager.getRegion(player);
+            if (region != null) {
+                ActiveRegion activeRegion = region.getActiveRegion();
 
+                EventAction eventAction = activeRegion.getEventActionByEvent(RESPAWN);
+                if (eventAction != null) {
+                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                        JPermission permission = eventAction.getPermission();
+                        if (permission != null && !player.hasPermission(permission)) {
+                            if (eventAction.getPermissionDenyMessage() != null)
+                                eventAction.getPermissionDenyMessage().send(player);
+                            return;
+                        }
+                    }
+                    eventAction.getManipulator().processAll(player);
+                }
+
+                t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRespawnInRegionEvent(player, region));
+                if (eventAction != null && eventAction.getActionMessage() != null)
+                    eventAction.getActionMessage().send(player);
+            }
+        }
     }
 
     @EventHandler
     public void onRegenHp(EntityRegainHealthEvent event) {
+        if (event.isCancelled()) return;
+        if (event.getEntity() instanceof Player player) {
+            if (this.manager.inRegion(player)) {
+                Region region = this.manager.getRegion(player);
+                if (region != null) {
+                    ActiveRegion activeRegion = region.getActiveRegion();
 
+                    EventAction eventAction = activeRegion.getEventActionByEvent(REGEN_HP);
+                    if (eventAction != null) {
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                            JPermission permission = eventAction.getPermission();
+                            if (permission != null && !player.hasPermission(permission)) {
+                                if (eventAction.getPermissionDenyMessage() != null)
+                                    eventAction.getPermissionDenyMessage().send(player);
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+
+                        int time = eventAction.getCooldown();
+                        if (time > 0)
+                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + REGEN_HP.name(), time)) {
+                                if (eventAction.getCooldownMessage() != null) {
+                                    eventAction.getCooldownMessage()
+                                            .replace("%time%", time)
+                                            .replace("%time_correct%", TimeUtil.leftTime(time))
+                                            .send(player);
+                                }
+                                event.setCancelled(true);
+                                return;
+                            }
+                        eventAction.getManipulator().processAll(player);
+
+                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + REGEN_HP.name();
+                        eventAction.getManipulator().replace(s -> s
+                                .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                        );
+
+                        if (REGEN_HP.cancelledEvents.contains(player)) {
+                            event.setCancelled(true);
+                        }
+                        if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                            event.setCancelled(true);
+                        }
+                    }
+
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(REGEN_HP, false);
+                    event.setCancelled(cancelled);
+
+                    int time = activeRegion.getCooldowns().getOrDefault(REGEN_HP, -1);
+                    if (time > 0) {
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + REGEN_HP.name(), time)) {
+                            // TODO message
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
+                    PlayerRegenHPInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRegenHPInRegionEvent(player, region));
+                    if (customEventCaller.isCancelled()) {
+                        event.setCancelled(true);
+                    }
+                    if (eventAction != null && eventAction.getActionMessage() != null)
+                        eventAction.getActionMessage().send(player);
+                }
+            }
+        }
     }
 
     @EventHandler
     public void onRegenHunger(FoodLevelChangeEvent event) {
+        if (event.isCancelled()) return;
+        if (event.getEntity() instanceof Player player) {
+            if (this.manager.inRegion(player)) {
+                Region region = this.manager.getRegion(player);
+                if (region != null) {
+                    ActiveRegion activeRegion = region.getActiveRegion();
 
+                    EventAction eventAction = activeRegion.getEventActionByEvent(REGEN_HUNGER);
+                    if (eventAction != null) {
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                            JPermission permission = eventAction.getPermission();
+                            if (permission != null && !player.hasPermission(permission)) {
+                                if (eventAction.getPermissionDenyMessage() != null)
+                                    eventAction.getPermissionDenyMessage().send(player);
+                                event.setCancelled(true); // no permission for die? ;c
+                                return;
+                            }
+                        }
+
+                        int time = eventAction.getCooldown();
+                        if (time > 0)
+                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + REGEN_HUNGER.name(), time)) {
+                                if (eventAction.getCooldownMessage() != null) {
+                                    eventAction.getCooldownMessage()
+                                            .replace("%time%", time)
+                                            .replace("%time_correct%", TimeUtil.leftTime(time))
+                                            .send(player);
+                                }
+                                event.setCancelled(true);
+                                return;
+                            }
+                        eventAction.getManipulator().processAll(player);
+
+                        String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + REGEN_HUNGER.name();
+                        eventAction.getManipulator().replace(s -> s
+                                .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                        );
+
+                        if (REGEN_HUNGER.cancelledEvents.contains(player)) {
+                            event.setCancelled(true);
+                        }
+                        if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                            event.setCancelled(true);
+                        }
+                    }
+
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(REGEN_HUNGER, false);
+                    event.setCancelled(cancelled);
+
+                    int time = activeRegion.getCooldowns().getOrDefault(REGEN_HUNGER, -1);
+                    if (time > 0) {
+                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + REGEN_HUNGER.name(), time)) {
+                            // TODO message
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+
+                    PlayerRegenHungerInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRegenHungerInRegionEvent(player, region));
+                    if (customEventCaller.isCancelled()) {
+                        event.setCancelled(true);
+                    }
+                    if (eventAction != null && eventAction.getActionMessage() != null)
+                        eventAction.getActionMessage().send(player);
+                }
+            }
+        }
     }
 
     /**
      * cast for @Events.USE, Events.OPEN_CHEST, Events.OPEN_ENDER_CHEST
      */
     @EventHandler
-    public void onUse(PlayerInteractEvent event){
+    public void onUse(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (event.getClickedBlock() != null) {
+            Block block = event.getClickedBlock();
+            if (block.getType().isInteractable()) {
+                if (this.manager.inRegion(player)) {
+                    Region region = this.manager.getRegion(player);
+                    if (region != null) {
 
+                        ActiveRegion activeRegion = region.getActiveRegion();
+
+                        if (block.getType().equals(Material.CHEST) || block.getType().equals(Material.CHEST_MINECART) || block.getType().equals(Material.TRAPPED_CHEST)) {
+
+                            EventAction eventAction = activeRegion.getEventActionByEvent(OPEN_CHEST);
+                            if (eventAction != null) {
+                                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                    JPermission permission = eventAction.getPermission();
+                                    if (permission != null && !player.hasPermission(permission)) {
+                                        if (eventAction.getPermissionDenyMessage() != null)
+                                            eventAction.getPermissionDenyMessage().send(player);
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                }
+
+                                int time = eventAction.getCooldown();
+                                if (time > 0)
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + OPEN_CHEST.name(), time)) {
+                                        if (eventAction.getCooldownMessage() != null) {
+                                            eventAction.getCooldownMessage()
+                                                    .replace("%time%", time)
+                                                    .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                    .send(player);
+                                        }
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                eventAction.getManipulator().processAll(player);
+
+                                String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + OPEN_CHEST.name();
+                                eventAction.getManipulator().replace(s -> s
+                                        .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                );
+
+                                if (OPEN_CHEST.cancelledEvents.contains(player)) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                                if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                            }
+
+                            boolean cancelled = activeRegion.getCancelled().getOrDefault(OPEN_CHEST, false);
+                            event.setCancelled(cancelled);
+                            if (cancelled) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+
+                            int time = activeRegion.getCooldowns().getOrDefault(OPEN_CHEST, -1);
+                            if (time > 0) {
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + OPEN_CHEST.name(), time)) {
+                                    // TODO message
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                    return;
+                                }
+                            }
+
+                            PlayerOpenChestInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerOpenChestInRegionEvent(player, region));
+                            if (customEventCaller.isCancelled()) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+                            if (eventAction != null && eventAction.getActionMessage() != null)
+                                eventAction.getActionMessage().send(player);
+                            if (customEventCaller.isCancelled() || event.useInteractedBlock().equals(Event.Result.DENY) || event.useItemInHand().equals(Event.Result.DENY))
+                                return;
+                        }
+                        if (block.getType().equals(Material.ENDER_CHEST)) {
+
+                            EventAction eventAction = activeRegion.getEventActionByEvent(OPEN_ENDER_CHEST);
+                            if (eventAction != null) {
+                                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                    JPermission permission = eventAction.getPermission();
+                                    if (permission != null && !player.hasPermission(permission)) {
+                                        if (eventAction.getPermissionDenyMessage() != null)
+                                            eventAction.getPermissionDenyMessage().send(player);
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                }
+
+                                int time = eventAction.getCooldown();
+                                if (time > 0)
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + OPEN_ENDER_CHEST.name(), time)) {
+                                        if (eventAction.getCooldownMessage() != null) {
+                                            eventAction.getCooldownMessage()
+                                                    .replace("%time%", time)
+                                                    .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                    .send(player);
+                                        }
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                eventAction.getManipulator().processAll(player);
+
+                                String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + OPEN_ENDER_CHEST.name();
+                                eventAction.getManipulator().replace(s -> s
+                                        .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                );
+
+                                if (OPEN_ENDER_CHEST.cancelledEvents.contains(player)) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                                if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                            }
+
+                            boolean cancelled = activeRegion.getCancelled().getOrDefault(OPEN_ENDER_CHEST, false);
+                            event.setCancelled(cancelled);
+                            if (cancelled) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+
+                            int time = activeRegion.getCooldowns().getOrDefault(OPEN_ENDER_CHEST, -1);
+                            if (time > 0) {
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + OPEN_ENDER_CHEST.name(), time)) {
+                                    // TODO message
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                    return;
+                                }
+                            }
+
+                            PlayerOpenEnderChestInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerOpenEnderChestInRegionEvent(player, region));
+                            if (customEventCaller.isCancelled()) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+                            if (eventAction != null && eventAction.getActionMessage() != null)
+                                eventAction.getActionMessage().send(player);
+                            if (customEventCaller.isCancelled() || event.useInteractedBlock().equals(Event.Result.DENY) || event.useItemInHand().equals(Event.Result.DENY))
+                                return;
+                        }
+                        if (player.isSneaking()) {
+                            if (event.getAction().isLeftClick()) {
+
+                                EventAction eventAction = activeRegion.getEventActionByEvent(LEFT_USE_ON_SHIFT);
+                                if (eventAction != null) {
+                                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                        JPermission permission = eventAction.getPermission();
+                                        if (permission != null && !player.hasPermission(permission)) {
+                                            if (eventAction.getPermissionDenyMessage() != null)
+                                                eventAction.getPermissionDenyMessage().send(player);
+                                            event.setUseInteractedBlock(Event.Result.DENY);
+                                            event.setUseItemInHand(Event.Result.DENY);
+                                            return;
+                                        }
+                                    }
+
+                                    int time = eventAction.getCooldown();
+                                    if (time > 0)
+                                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + LEFT_USE_ON_SHIFT.name(), time)) {
+                                            if (eventAction.getCooldownMessage() != null) {
+                                                eventAction.getCooldownMessage()
+                                                        .replace("%time%", time)
+                                                        .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                        .send(player);
+                                            }
+                                            event.setUseInteractedBlock(Event.Result.DENY);
+                                            event.setUseItemInHand(Event.Result.DENY);
+                                            return;
+                                        }
+                                    eventAction.getManipulator().processAll(player);
+
+                                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + LEFT_USE_ON_SHIFT.name();
+                                    eventAction.getManipulator().replace(s -> s
+                                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                    );
+
+                                    if (LEFT_USE_ON_SHIFT.cancelledEvents.contains(player)) {
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                    }
+                                    if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                    }
+                                }
+
+                                boolean cancelled = activeRegion.getCancelled().getOrDefault(LEFT_USE_ON_SHIFT, false);
+                                event.setCancelled(cancelled);
+                                if (cancelled) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+
+                                int time = activeRegion.getCooldowns().getOrDefault(LEFT_USE_ON_SHIFT, -1);
+                                if (time > 0) {
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + LEFT_USE_ON_SHIFT.name(), time)) {
+                                        // TODO message
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                }
+
+                                PlayerLeftUseOnShiftInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeftUseOnShiftInRegionEvent(player, region));
+                                if (customEventCaller.isCancelled()) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                                if (eventAction != null && eventAction.getActionMessage() != null)
+                                    eventAction.getActionMessage().send(player);
+                                if (customEventCaller.isCancelled() || event.useInteractedBlock().equals(Event.Result.DENY) || event.useItemInHand().equals(Event.Result.DENY))
+                                    return;
+                            } else {
+                                EventAction eventAction = activeRegion.getEventActionByEvent(RIGHT_USE_ON_SHIFT);
+                                if (eventAction != null) {
+                                    if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                        JPermission permission = eventAction.getPermission();
+                                        if (permission != null && !player.hasPermission(permission)) {
+                                            if (eventAction.getPermissionDenyMessage() != null)
+                                                eventAction.getPermissionDenyMessage().send(player);
+                                            event.setUseInteractedBlock(Event.Result.DENY);
+                                            event.setUseItemInHand(Event.Result.DENY);
+                                            return;
+                                        }
+                                    }
+
+                                    int time = eventAction.getCooldown();
+                                    if (time > 0)
+                                        if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + RIGHT_USE_ON_SHIFT.name(), time)) {
+                                            if (eventAction.getCooldownMessage() != null) {
+                                                eventAction.getCooldownMessage()
+                                                        .replace("%time%", time)
+                                                        .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                        .send(player);
+                                            }
+                                            event.setUseInteractedBlock(Event.Result.DENY);
+                                            event.setUseItemInHand(Event.Result.DENY);
+                                            return;
+                                        }
+                                    eventAction.getManipulator().processAll(player);
+
+                                    String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + RIGHT_USE_ON_SHIFT.name();
+                                    eventAction.getManipulator().replace(s -> s
+                                            .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                    );
+
+                                    if (RIGHT_USE_ON_SHIFT.cancelledEvents.contains(player)) {
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                    }
+                                    if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                    }
+                                }
+
+                                boolean cancelled = activeRegion.getCancelled().getOrDefault(RIGHT_USE_ON_SHIFT, false);
+                                event.setCancelled(cancelled);
+                                if (cancelled) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+
+                                int time = activeRegion.getCooldowns().getOrDefault(RIGHT_USE_ON_SHIFT, -1);
+                                if (time > 0) {
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + RIGHT_USE_ON_SHIFT.name(), time)) {
+                                        // TODO message
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                }
+
+                                PlayerRightUseOnShiftInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRightUseOnShiftInRegionEvent(player, region));
+                                if (customEventCaller.isCancelled()) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                                if (eventAction != null && eventAction.getActionMessage() != null)
+                                    eventAction.getActionMessage().send(player);
+                                if (customEventCaller.isCancelled() || event.useInteractedBlock().equals(Event.Result.DENY) || event.useItemInHand().equals(Event.Result.DENY))
+                                    return;
+                            }
+                        }
+                /*
+                   ------------------------------------------------------------------------------------------------------------
+                    Для начала, мы проверяем все другие ивенты взаимодействия, а только потом обычный ивент взаимодействия
+                   ------------------------------------------------------------------------------------------------------------
+                 */
+                        if (event.getAction().isLeftClick()) {
+                            EventAction eventAction = activeRegion.getEventActionByEvent(LEFT_USE);
+                            if (eventAction != null) {
+                                if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                    JPermission permission = eventAction.getPermission();
+                                    if (permission != null && !player.hasPermission(permission)) {
+                                        if (eventAction.getPermissionDenyMessage() != null)
+                                            eventAction.getPermissionDenyMessage().send(player);
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                }
+
+                                int time = eventAction.getCooldown();
+                                if (time > 0)
+                                    if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + LEFT_USE.name(), time)) {
+                                        if (eventAction.getCooldownMessage() != null) {
+                                            eventAction.getCooldownMessage()
+                                                    .replace("%time%", time)
+                                                    .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                    .send(player);
+                                        }
+                                        event.setUseInteractedBlock(Event.Result.DENY);
+                                        event.setUseItemInHand(Event.Result.DENY);
+                                        return;
+                                    }
+                                eventAction.getManipulator().processAll(player);
+
+                                String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + LEFT_USE.name();
+                                eventAction.getManipulator().replace(s -> s
+                                        .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                                );
+
+                                if (LEFT_USE.cancelledEvents.contains(player)) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                                if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                }
+                            }
+
+                            boolean cancelled = activeRegion.getCancelled().getOrDefault(LEFT_USE, false);
+                            event.setCancelled(cancelled);
+                            if (cancelled) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+
+                            int time = activeRegion.getCooldowns().getOrDefault(LEFT_USE, -1);
+                            if (time > 0) {
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + LEFT_USE.name(), time)) {
+                                    // TODO message
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                    return;
+                                }
+                            }
+
+                            PlayerLeftUseInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeftUseInRegionEvent(player, region));
+                            if (customEventCaller.isCancelled()) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+                            if (eventAction != null && eventAction.getActionMessage() != null)
+                                eventAction.getActionMessage().send(player);
+                            if (customEventCaller.isCancelled() || event.useInteractedBlock().equals(Event.Result.DENY) || event.useItemInHand().equals(Event.Result.DENY))
+                                return;
+                        }
+                        EventAction eventAction = activeRegion.getEventActionByEvent(RIGHT_USE);
+                        if (eventAction != null) {
+                            if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
+                                JPermission permission = eventAction.getPermission();
+                                if (permission != null && !player.hasPermission(permission)) {
+                                    if (eventAction.getPermissionDenyMessage() != null)
+                                        eventAction.getPermissionDenyMessage().send(player);
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                    return;
+                                }
+                            }
+
+                            int time = eventAction.getCooldown();
+                            if (time > 0)
+                                if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_ACTION_ON_" + RIGHT_USE.name(), time)) {
+                                    if (eventAction.getCooldownMessage() != null) {
+                                        eventAction.getCooldownMessage()
+                                                .replace("%time%", time)
+                                                .replace("%time_correct%", TimeUtil.leftTime(time))
+                                                .send(player);
+                                    }
+                                    event.setUseInteractedBlock(Event.Result.DENY);
+                                    event.setUseItemInHand(Event.Result.DENY);
+                                    return;
+                                }
+                            eventAction.getManipulator().processAll(player);
+
+                            String timerEventActionKey = TimerEventAction.COOLDOWN_KEY + "_" + RIGHT_USE.name();
+                            eventAction.getManipulator().replace(s -> s
+                                    .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
+                            );
+
+                            if (RIGHT_USE.cancelledEvents.contains(player)) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+                            if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                            }
+                        }
+
+                        boolean cancelled = activeRegion.getCancelled().getOrDefault(RIGHT_USE, false);
+                        event.setCancelled(cancelled);
+                        if (cancelled) {
+                            event.setUseInteractedBlock(Event.Result.DENY);
+                            event.setUseItemInHand(Event.Result.DENY);
+                        }
+
+                        int time = activeRegion.getCooldowns().getOrDefault(RIGHT_USE, -1);
+                        if (time > 0) {
+                            if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + RIGHT_USE.name(), time)) {
+                                // TODO message
+                                event.setUseInteractedBlock(Event.Result.DENY);
+                                event.setUseItemInHand(Event.Result.DENY);
+                                return;
+                            }
+                        }
+
+                        PlayerRightUseInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRightUseInRegionEvent(player, region));
+                        if (customEventCaller.isCancelled()) {
+                            event.setUseInteractedBlock(Event.Result.DENY);
+                            event.setUseItemInHand(Event.Result.DENY);
+                        }
+                        if (eventAction != null && eventAction.getActionMessage() != null)
+                            eventAction.getActionMessage().send(player);
+                    }
+                }
+            }
+        }
     }
 }
