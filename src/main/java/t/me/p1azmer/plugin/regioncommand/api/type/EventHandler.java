@@ -141,7 +141,6 @@ public enum EventHandler {
             List.of("&7твечает за левый клик на шифте взаимодействи€", "&7с предметами, который позвол€ют это (двери и т.п)")),
     DEATH(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0"),
             List.of("&7ќтвечает за смерить в регионе (пока не работает)")),
-
     ;
 
     private final ItemStack item;
