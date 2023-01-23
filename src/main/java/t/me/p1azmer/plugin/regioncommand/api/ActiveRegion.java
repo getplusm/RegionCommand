@@ -14,9 +14,10 @@ import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.aves.engine.utils.NumberUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.editor.action.ActiveRegionEditor;
 import t.me.p1azmer.plugin.regioncommand.editor.action.events.EventActiveListEditor;
+import t.me.p1azmer.plugin.regioncommand.editor.action.events.EventHandlerListMenu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,14 +29,16 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
 
     private final Region region;
     private double radius;
-    private final Map<Events, Integer> cooldowns;
-    private final Map<Events, Boolean> cancelled;
+    private final Map<EventHandler, Integer> cooldowns;
+    private final Map<EventHandler, Boolean> cancelled;
     private final List<EventAction> eventActions;
 
     private final JYML config;
 
     private ActiveRegionEditor editor;
     private EventActiveListEditor eventActiveListEditor;
+
+    private EventHandlerListMenu eventHandlerListMenu; // menu for eventhandler selector
 
     public ActiveRegion(Region region) {
         super(region.plugin(), region.getConfig());
@@ -45,6 +48,8 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
         this.cooldowns = new HashMap<>();
         this.eventActions = new ArrayList<>();
         this.cancelled = new HashMap<>();
+
+        this.eventHandlerListMenu = new EventHandlerListMenu(this);
     }
 
     public ActiveRegion(Region region, JYML cfg) {
@@ -65,7 +70,7 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
         String finalPath1 = path + ".";
         cfg.getSection(path).forEach(id -> {
             String finalPath = finalPath1 + id + ".";
-            Events event = CollectionsUtil.getEnum(id, Events.class);
+            EventHandler event = CollectionsUtil.getEnum(id, EventHandler.class);
             if (event == null) {
                 throw new IllegalArgumentException("Invalid event enum at " + region.getId() + " region!");
             }
@@ -78,7 +83,7 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
 
         cfg.getSection(path).forEach(id -> {
             String finalPath = finalPath2 + id + ".";
-            Events event = CollectionsUtil.getEnum(id, Events.class);
+            EventHandler event = CollectionsUtil.getEnum(id, EventHandler.class);
             if (event == null) {
                 throw new IllegalArgumentException("Invalid event enum at " + region.getId() + " region!");
             }
@@ -96,13 +101,15 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
             EventAction eventAction = new EventAction(this, event, permission, langMessage, time, manipulator, canceled);
             this.eventActions.add(eventAction);
         });
+
+        this.eventHandlerListMenu = new EventHandlerListMenu(this);
     }
 
     public double getRadius() {
         return radius;
     }
 
-    public Map<Events, Integer> getCooldowns() {
+    public Map<EventHandler, Integer> getCooldowns() {
         return cooldowns;
     }
 
@@ -110,11 +117,11 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
         return eventActions;
     }
 
-    public EventAction getEventActionByEvent(Events events) {
-        return eventActions.stream().filter(f -> f.getEvents().equals(events)).findFirst().orElse(null);
+    public EventAction getEventActionByEvent(EventHandler eventHandler) {
+        return eventActions.stream().filter(f -> f.getEventHandler().equals(eventHandler)).findAny().orElse(null);
     }
 
-    public Map<Events, Boolean> getCancelled() {
+    public Map<EventHandler, Boolean> getCancelled() {
         return cancelled;
     }
 
@@ -140,9 +147,8 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
         if (!this.config.contains(finalPath1))
             this.config.createSection(path + "Events");
         this.eventActions.forEach(eventAction -> {
-            String id = eventAction.getEvents().name();
+            String id = eventAction.getEventHandler().name();
             String finalPath = finalPath1 + id + ".";
-            plugin.info("Save the event action on region '" + this.region.getId() + "'. Event= " + eventAction.getEvents().name() + ", path=" + finalPath);
             this.config.set(finalPath + "Cancelled", eventAction.isCancelled());
             if (eventAction.getPermission() != null) {
                 this.config.set(finalPath + "Permission", eventAction.getPermission().getName());
@@ -179,6 +185,10 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
         return this.eventActiveListEditor;
     }
 
+    public EventHandlerListMenu getEventHandlerListMenu() {
+        return eventHandlerListMenu;
+    }
+
     @Override
     public @NotNull UnaryOperator<String> replacePlaceholders() {
         return s -> s
@@ -197,5 +207,15 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
             this.editor.clear();
             this.editor = null;
         }
+        if (this.eventHandlerListMenu != null){
+            this.eventHandlerListMenu.clear();
+            this.eventHandlerListMenu = null;
+        }
+    }
+
+    public void deleteEventAction(EventAction event){
+        this.eventActions.remove(event);
+        this.config.set("Active.Events."+event.getEventHandler().name().toUpperCase(), "");
+        this.config.saveChanges();
     }
 }

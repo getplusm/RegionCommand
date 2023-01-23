@@ -6,7 +6,7 @@ import t.me.p1azmer.aves.engine.api.command.GeneralCommand;
 import t.me.p1azmer.aves.engine.api.editor.EditorHolder;
 import t.me.p1azmer.aves.engine.command.list.EditorSubCommand;
 import t.me.p1azmer.aves.engine.command.list.ReloadSubCommand;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorHub;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
@@ -65,7 +65,7 @@ public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolde
     @Override
     public void loadLang() {
         this.langManager.loadMissing(Lang.class);
-        this.langManager.setupEnum(Events.class);
+        this.langManager.setupEnum(EventHandler.class);
     }
 
     @Override

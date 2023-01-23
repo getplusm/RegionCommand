@@ -16,7 +16,7 @@ import t.me.p1azmer.aves.engine.utils.ItemUtil;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
 import t.me.p1azmer.plugin.regioncommand.api.EventAction;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
@@ -32,13 +32,13 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
         EditorInput<ActiveRegion, EditorType> eventCreate = (player, activeRegion, type, event) -> {
             String msg = event.getMessage();
             if (type.equals(EditorType.EVENTS_CREATE)) {
-                Events events = CollectionsUtil.getEnum(msg, Events.class);
-                if (events == null) {
+                EventHandler eventHandler = CollectionsUtil.getEnum(msg, EventHandler.class);
+                if (eventHandler == null) {
                     EditorManager.error(player, "Ивент обработчик не найден!");
                     return false;
                 }
                 EditorManager.tip(player, "Ивент обработчик создан. Настрой его!");
-                EventAction eventAction = new EventAction(activeRegion, events);
+                EventAction eventAction = new EventAction(activeRegion, eventHandler);
                 activeRegion.getEventActions().add(eventAction);
                 activeRegion.save();
                 return true;
@@ -55,10 +55,14 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
                     this.onItemClickDefault(player, type2);
             } else if (type instanceof EditorType type2) {
                 if (type2.equals(EditorType.EVENTS_CREATE)) {
-                    EditorManager.startEdit(player, parent, type2, eventCreate);
-                    EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
-                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
-                    player.closeInventory();
+                    EventHandlerListMenu menu = parent.getEventHandlerListMenu();
+                    if (menu == null) {
+                        EditorManager.startEdit(player, parent, type2, eventCreate);
+                        EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
+                        EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(EventHandler.class), false);
+                        player.closeInventory();
+                    }else
+                        menu.open(player, 1);
                 }
             }
         };
@@ -83,7 +87,7 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
 
     @Override
     protected @NotNull ItemStack getObjectStack(@NotNull Player player, @NotNull EventAction eventAction) {
-        ItemStack item = eventAction.getEvents().getItem();
+        ItemStack item = eventAction.getEventHandler().getItem();
         ItemStack object = EditorType.EVENTS_OBJECT.getItem();
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -97,7 +101,12 @@ public class EventActiveListEditor extends AbstractEditorMenuAuto<RegPlugin, Act
 
     @Override
     protected @NotNull MenuClick getObjectClick(@NotNull Player player, @NotNull EventAction eventAction) {
-        return (player1, anEnum, inventoryClickEvent) -> {
+        return (player1, type, event) -> {
+            if (event.isRightClick() && event.isShiftClick()){
+                this.parent.deleteEventAction(eventAction);
+                this.open(player, 1);
+                return;
+            }
             eventAction.getEditor().open(player, 1);
         };
     }

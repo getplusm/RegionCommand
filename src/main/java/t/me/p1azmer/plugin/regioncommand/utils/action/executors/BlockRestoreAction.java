@@ -11,7 +11,7 @@ import t.me.p1azmer.aves.engine.actions.parameter.value.ParameterValueNumber;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +64,7 @@ public class BlockRestoreAction extends AbstractActionExecutor {
             return;
         }
 
-        Events events = Events.BLOCK_BREAK;
+        EventHandler eventHandler = EventHandler.BLOCK_BREAK;
         Location location = player.getLocation();
 
         Region region = RegionAPI.PLUGIN.getManager().getRegion(location, 1);
@@ -72,7 +72,7 @@ public class BlockRestoreAction extends AbstractActionExecutor {
             return;
         }
 
-        events.callBlockRestore(player, region, type, timeValue, materials);
+        eventHandler.callBlockRestore(player, region, type, timeValue, materials);
 
     }
 }

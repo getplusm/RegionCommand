@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.jetbrains.annotations.NotNull;
 import t.me.p1azmer.api.returns.TripleReturn;
@@ -17,7 +16,7 @@ import t.me.p1azmer.plugin.regioncommand.api.events.region.block.RestoreBlockEve
 import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamageAggressiveInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.damage.PlayerDamagePlayerInRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.player.PlayerCommandInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 
 import java.util.ArrayList;
@@ -43,13 +42,13 @@ public class CustomListener extends AbstractListener<RegPlugin> {
         this.blockRestores = new ArrayList<>();
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreakInRegion(PlayerBlockBreakInRegionEvent event) {
         if (event.getBlock() != null) {
             Block block = event.getBlock();
             Region region = event.getRegion();
-            if (Events.getMaterialsToRestore().containsKey(region)) {
-                TripleReturn<List<Material>, Material, Long> pair = Events.getMaterialsToRestore().get(region);
+            if (EventHandler.getMaterialsToRestore().containsKey(region)) {
+                TripleReturn<List<Material>, Material, Long> pair = EventHandler.getMaterialsToRestore().get(region);
                 if (pair.first().contains(block.getType())) {
                     RestoreBlockEvent calledEvent = t.me.p1azmer.api.Events.callSyncAndJoin(new RestoreBlockEvent(event, event.getEntity(), region, block.getState(), pair.second(), pair.third()));
                     if (calledEvent.isCancelled()) {
@@ -60,31 +59,31 @@ public class CustomListener extends AbstractListener<RegPlugin> {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH)
     public void onPlace(PlayerBlockPlaceInRegionEvent event) {
         if (event.isCancelled())
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH)
     public void onCommand(PlayerCommandInRegionEvent event) {
         if (event.isCancelled())
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH)
     public void onDamageEntity(PlayerDamageAggressiveInRegionEvent event) {
         if (event.isCancelled())
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH)
     public void onDamagePlayer(PlayerDamagePlayerInRegionEvent event) {
         if (event.isCancelled())
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @org.bukkit.event.EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onRestoreBlock(RestoreBlockEvent event) {
         Location location = event.getBlockState().getLocation();
 

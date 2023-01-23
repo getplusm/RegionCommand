@@ -109,7 +109,7 @@ public enum EditorType implements EditorButtonType {
             "&7Сообщение при задержке:\n&f" + PLACEHOLDER_EVENTS_LANGKEY,
             "&7Право доступа: &6" + PLACEHOLDER_EVENTS_PERMISSION,
             "&7Ивент отменен: &6" + PLACEHOLDER_EVENTS_CANCELLED
-            , EditorButtonType.click("Нажмите, чтобы перейти")
+            , EditorButtonType.click("Нажмите, чтобы перейти\nШИФТ + ПКМ, чтобы удалить")
     ),
 
     EVENTS_CREATE(Material.ANVIL, "Создать новый обработчик", EditorButtonType.click("Нажмите, чтобы создать")),

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import t.me.p1azmer.api.returns.TripleReturn;
 import t.me.p1azmer.aves.engine.utils.ItemUtil;
+import t.me.p1azmer.aves.engine.utils.StringUtil;
 import t.me.p1azmer.aves.engine.utils.collections.AutoRemovalCollection;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
@@ -25,99 +26,138 @@ import t.me.p1azmer.plugin.regioncommand.api.events.region.use.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public enum Events {
+public enum EventHandler {
 
-    ENTER(new ItemStack(Material.BIRCH_DOOR)),
-    LEAVE(new ItemStack(Material.IRON_DOOR)),
-    MOVE(new ItemStack(Material.LEATHER_BOOTS)),
-    JUMP(new ItemStack(Material.SLIME_BLOCK)),
-    SHIFT_UP(new ItemStack(Material.LEATHER_LEGGINGS)),
-    SHIFT_DOWN(new ItemStack(Material.DIAMOND_LEGGINGS)),
+    ENTER(new ItemStack(Material.BIRCH_DOOR),
+            List.of("&7Отвечает за вход в регион")),
+    LEAVE(new ItemStack(Material.IRON_DOOR),
+            List.of("&7Отвечает за выход из региона")),
+    MOVE(new ItemStack(Material.LEATHER_BOOTS),
+            List.of("&7Отвечает за движение внутри региона")),
+    JUMP(new ItemStack(Material.SLIME_BLOCK),
+            List.of("&7Отвечает за прыжки в регионе")),
+    SHIFT_UP(new ItemStack(Material.LEATHER_LEGGINGS),
+            List.of("&7Отвечает за восстановление", "&7положения игрока из шифта")),
+    SHIFT_DOWN(new ItemStack(Material.DIAMOND_LEGGINGS),
+            List.of("&7Отвечает за установку положения в шифте")),
     //INSIDE(ItemUtil.returnSkullTexture(new ItemStack(Material.DIRT), // like move, "?))
-    LMB(new ItemStack(Material.BIRCH_BUTTON)),
-    RMB(new ItemStack(Material.ACACIA_BUTTON)),
-    COMMANDS(new ItemStack(Material.COMMAND_BLOCK)),
-    BLOCK_PLACE(new ItemStack(Material.DIRT_PATH)),
-    BLOCK_BREAK(new ItemStack(Material.WOODEN_PICKAXE)),
+    LMB(new ItemStack(Material.BIRCH_BUTTON),
+            List.of("&7Отвечает за Левый клик по чему угодно")),
+    RMB(new ItemStack(Material.ACACIA_BUTTON),
+            List.of("&7Отвечает за Правый клик по чему угодно")),
+    COMMANDS(new ItemStack(Material.COMMAND_BLOCK),
+            List.of("&7Отвечает за выполнение","&7любых команд в регионе")),
+    BLOCK_PLACE(new ItemStack(Material.DIRT_PATH),
+            List.of("&7Отвечает за постановку блоков в регионе")),
+    BLOCK_BREAK(new ItemStack(Material.WOODEN_PICKAXE),
+            List.of("&7Отвечает за ломание блоков в регионе")),
     /**
      * disable damage to any player
      */
-    DAMAGE_PLAYER(new ItemStack(Material.DIAMOND_SWORD)),
+    DAMAGE_PLAYER(new ItemStack(Material.DIAMOND_SWORD),
+            List.of("&7Отвечает за урон игрока в регионе")),
     /**
      * disable damage to any entity
      */
-    DAMAGE_AGGRESSIVE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThhNjg4NDQ5N2RlMTkxNTkyZWM0MmJkZGFlNTBlYmU3NWVkYmUyNDY4Yjk2ODczODI2MDk1MzBkNDE3MWExMSJ9fX0=")),
-    DAMAGE_ANIMAL(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzBmNTAzOTRjNmQ3ZGJjMDNlYTU5ZmRmNTA0MDIwZGM1ZDY1NDhmOWQzYmM5ZGNhYzg5NmJiNWNhMDg1ODdhIn19fQ==")),
-    TAKE_DAMAGE(new ItemStack(Material.SHIELD)),
+    DAMAGE_AGGRESSIVE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOThhNjg4NDQ5N2RlMTkxNTkyZWM0MmJkZGFlNTBlYmU3NWVkYmUyNDY4Yjk2ODczODI2MDk1MzBkNDE3MWExMSJ9fX0="),
+            List.of("&7Отвечает за урон по","&7агрессивным монстрам в регионе")),
+    DAMAGE_ANIMAL(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzBmNTAzOTRjNmQ3ZGJjMDNlYTU5ZmRmNTA0MDIwZGM1ZDY1NDhmOWQzYmM5ZGNhYzg5NmJiNWNhMDg1ODdhIn19fQ=="),
+            List.of("&7Отвечает за урон по","&7мирным монстрам в регионе")),
+    TAKE_DAMAGE(new ItemStack(Material.SHIELD),
+            List.of("&7Отвечает за полученный урон в регионе")),
     /**
      * prevent all damage from player
      */
-    TAKE_DAMAGE_PLAYER(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTNhMzk2MGM4Nzk0NzQwMTdjMGNhM2M4MGY2ZWU3M2NmODg2ZTAwZTg5YzkwMmEzZWU4OTNkZDI4NDk1MzVjMCJ9fX0=")),
+    TAKE_DAMAGE_PLAYER(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTNhMzk2MGM4Nzk0NzQwMTdjMGNhM2M4MGY2ZWU3M2NmODg2ZTAwZTg5YzkwMmEzZWU4OTNkZDI4NDk1MzVjMCJ9fX0="),
+            List.of("&7Отвечает за полученный","&7урон от игрока в регионе")),
 
     /**
      * prevent damage from all collision blocks
      */
 
-    TAKE_DAMAGE_FROM_BLOCK(new ItemStack(Material.IRON_BLOCK)),
+    TAKE_DAMAGE_FROM_BLOCK(new ItemStack(Material.IRON_BLOCK),
+            List.of("&7Отвечает за урон от блоков (Гравий и т.п)")),
     /**
      * prevent damage from lava
      */
-    TAKE_DAMAGE_FROM_LAVA(new ItemStack(Material.LAVA_BUCKET)),
+    TAKE_DAMAGE_FROM_LAVA(new ItemStack(Material.LAVA_BUCKET),
+            List.of("&7Отвечает за урон от лавы")),
 
 
     /**
      * disable pickup all items
      */
-    PICKUP_ITEMS(new ItemStack(Material.HOPPER)),
+    PICKUP_ITEMS(new ItemStack(Material.HOPPER),
+            List.of("&7Отвечает за подъем предметов")),
 
     /**
      * disable drop any items
      */
-    DROP_ITEMS(new ItemStack(Material.DISPENSER)),
-    HUNGER(new ItemStack(Material.BEEF)),
+    DROP_ITEMS(new ItemStack(Material.DISPENSER),
+            List.of("&7Отвечает за выброс предметов")),
+    HUNGER(new ItemStack(Material.BEEF),
+            List.of("&7Отвечает за голод (отменяет его уменьшение)")),
 
     /**
      * regen HP
      */
-    REGEN_HP(new ItemStack(Material.POTION)),
+    REGEN_HP(new ItemStack(Material.POTION),
+            List.of("&7Отвечает за восстановление жизней в регионе")),
     /**
      * regen Hunger
      */
-    REGEN_HUNGER(new ItemStack(Material.BEETROOT_SOUP)),
+    REGEN_HUNGER(new ItemStack(Material.BEETROOT_SOUP),
+            List.of("&7Отвечает за восстановление голода в регионе")),
 
-    SPRINT(new ItemStack(Material.FEATHER)),
+    SPRINT(new ItemStack(Material.FEATHER),
+            List.of("&7Отвечает за бег в регионе (@MOVE ивент выше)")),
     /**
      * we are cant block respawn, but this for Action section methods
      */
 
-    RESPAWN(new ItemStack(Material.RED_BED)),
+    RESPAWN(new ItemStack(Material.RED_BED),
+            List.of("&7Отвечает за респавн в регионе (пока не работает)")),
 
     /**
      * disable collision
      */
-    COLLISION(new ItemStack(Material.OAK_FENCE)),
+    COLLISION(new ItemStack(Material.OAK_FENCE),
+            List.of("&7Отвечает за коллизию в регионе")),
 
     /**
      * open chests
      */
-    OPEN_CHEST(new ItemStack(Material.CHEST)),
-    OPEN_ENDER_CHEST(new ItemStack(Material.ENDER_CHEST)),
-
-    /**
-     * prevent use any items. Like button, stove etc.
-     */
-    LEFT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjZkYWI3MjcxZjRmZjA0ZDU0NDAyMTkwNjdhMTA5YjVjMGMxZDFlMDFlYzYwMmMwMDIwNDc2ZjdlYjYxMjE4MCJ9fX0=")),
-    RIGHT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjJmM2EyZGZjZTBjM2RhYjdlZTEwZGIzODVlNTIyOWYxYTM5NTM0YThiYTI2NDYxNzhlMzdjNGZhOTNiIn19fQ==")),
-    LEFT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0=")),
-    RIGHT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjgyYWQxYjljYjRkZDIxMjU5YzBkNzVhYTMxNWZmMzg5YzNjZWY3NTJiZTM5NDkzMzgxNjRiYWM4NGE5NmUifX19")),
-
-    DEATH(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0")),
+    OPEN_CHEST(new ItemStack(Material.CHEST),
+            List.of("&7Отвечает за открытие сундуков")),
+    OPEN_ENDER_CHEST(new ItemStack(Material.ENDER_CHEST),
+            List.of("&7Отвечает за открытие эндер сундука")),
+    LEFT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjZkYWI3MjcxZjRmZjA0ZDU0NDAyMTkwNjdhMTA5YjVjMGMxZDFlMDFlYzYwMmMwMDIwNDc2ZjdlYjYxMjE4MCJ9fX0="),
+            List.of("&7твечает за левый клик взаимодействия", "&7с предметами, который позволяют это (двери и т.п)")),
+    RIGHT_USE(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjJmM2EyZGZjZTBjM2RhYjdlZTEwZGIzODVlNTIyOWYxYTM5NTM0YThiYTI2NDYxNzhlMzdjNGZhOTNiIn19fQ=="),
+            List.of("&7твечает за правый клик взаимодействия", "&7с предметами, который позволяют это (двери и т.п)")),
+    LEFT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0="),
+            List.of("&7твечает за левый клик на шифте взаимодействия", "&7с предметами, который позволяют это (двери и т.п)")),
+    RIGHT_USE_ON_SHIFT(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjgyYWQxYjljYjRkZDIxMjU5YzBkNzVhYTMxNWZmMzg5YzNjZWY3NTJiZTM5NDkzMzgxNjRiYWM4NGE5NmUifX19"),
+            List.of("&7твечает за левый клик на шифте взаимодействия", "&7с предметами, который позволяют это (двери и т.п)")),
+    DEATH(ItemUtil.returnSkullTexture(new ItemStack(Material.PLAYER_HEAD), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzdhZWU5YTc1YmYwZGY3ODk3MTgzMDE1Y2NhMGIyYTdkNzU1YzYzMzg4ZmYwMTc1MmQ1ZjQ0MTlmYzY0NSJ9fX0"),
+            List.of("&7Отвечает за смерить в регионе (пока не работает)")),
     ;
 
     private final ItemStack item;
+    private final List<String> lore;
 
-    Events(ItemStack item) {
+    EventHandler(ItemStack item) {
         this.item = item;
+        this.lore = List.of("&7Что-то делает, пока не добавили описание");
+    }
+
+    EventHandler(ItemStack item, List<String> lore) {
+        this.item = item;
+        this.lore = lore;
+    }
+
+    public List<String> getLore() {
+        return lore;
     }
 
     public ItemStack getItem() {
@@ -205,7 +245,7 @@ public enum Events {
         RegionEvents event = t.me.p1azmer.api.Events.callSyncAndJoin(getCustomEvent(player, region));
         if (this.cancelledEvents.add(player)) {
             event.setCancelled(cancel);
-//            Event originalEvent = t.me.p1azmer.api.Events.callSyncAndJoin(getOriginalEvent(player, player.getLocation(), player.getLocation()));
+//            Event originalEvent = t.me.p1azmer.api.EventHandler.callSyncAndJoin(getOriginalEvent(player, player.getLocation(), player.getLocation()));
 //            if (originalEvent instanceof Cancellable cancellable) {
 //                cancellable.setCancelled(cancel);
 //                return event.isCancelled();
@@ -216,14 +256,14 @@ public enum Events {
     }
 
     public void callBlockRestore(Player player, Region region, Material type, long time, Material... materials) {
-        callBlockRestore(player, region, type, time,Arrays.stream(materials).toList());
+        callBlockRestore(player, region, type, time, Arrays.stream(materials).toList());
     }
 
     public void callBlockRestore(Player player, Region region, @Nullable Material type, long time, List<Material> materials) {
         if (materialsToRestore == null)
             materialsToRestore = new HashMap<>();
         materialsToRestore.put(region, new TripleReturn<>(materials, type, time));
-//        t.me.p1azmer.api.Events.callSync(new RestoreBlockEvent(player, region, materials));
+//        t.me.p1azmer.api.EventHandler.callSync(new RestoreBlockEvent(player, region, materials));
     }
 
 }

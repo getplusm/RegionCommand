@@ -27,7 +27,7 @@ import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
 
-import static t.me.p1azmer.plugin.regioncommand.api.type.Events.*;
+import static t.me.p1azmer.plugin.regioncommand.api.type.EventHandler.*;
 
 public class PhysicalListener extends AbstractListener<RegPlugin> {
 

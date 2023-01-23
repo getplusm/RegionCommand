@@ -10,7 +10,7 @@ import t.me.p1azmer.aves.engine.actions.parameter.value.ParameterValueNumber;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
 
 import java.util.Collection;
@@ -33,8 +33,8 @@ public class TimerCooldownCondition extends AbstractConditionValidator {
             return true;
         }
 
-        Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
-        if (events == null) {
+        EventHandler eventHandler = CollectionsUtil.getEnum(name.toUpperCase(), EventHandler.class);
+        if (eventHandler == null) {
             return true;
         }
 
@@ -57,7 +57,7 @@ public class TimerCooldownCondition extends AbstractConditionValidator {
             return true;
         long time = Cooldown.getSecondCooldown(player, TimerEventAction.COOLDOWN_KEY + "_" + name.toUpperCase());
         if (time > 0) {
-            events.cancelledCustomEvent(player, region, true);
+            eventHandler.cancelledCustomEvent(player, region, true);
             return false;
         }
         return preventCache.add(player);

@@ -11,7 +11,7 @@ import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
 import t.me.p1azmer.aves.engine.api.server.JPermission;
 import t.me.p1azmer.aves.engine.lang.LangManager;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.editor.action.events.EventActiveEditor;
 import t.me.p1azmer.plugin.regioncommand.editor.action.events.action.ActionSelector;
 import t.me.p1azmer.plugin.regioncommand.editor.action.events.action.ManipulatorActionListEditor;
@@ -21,7 +21,7 @@ import java.util.function.UnaryOperator;
 public class EventAction implements IPlaceholder, IEditable {
 
     private final ActiveRegion activeRegion;
-    private final Events events;
+    private final EventHandler eventHandler;
     private LangMessage langMessage;
     private LangMessage permissionDenyMessage;
     private LangMessage cooldownMessage;
@@ -35,47 +35,49 @@ public class EventAction implements IPlaceholder, IEditable {
     private ManipulatorActionListEditor actionListEditor;
     private ActionSelector actionSelector;
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator) {
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator) {
         this.activeRegion = activeRegion;
-        this.events = events;
+        this.eventHandler = eventHandler;
         this.permission = permission;
         this.langMessage = langMessage;
         this.cooldown = cooldown;
         this.manipulator = manipulator;
         this.cancelled = false;
-        this.cooldownMessage = new JOption<>("Messages.Cooldown",
+        this.cooldownMessage = new JOption<>("Active.Events."+ eventHandler.name()+".Messages.Cooldown",
                 (jyml, s, langMessage1) -> langMessage1,
                 new LangMessage(activeRegion.plugin(), "&cНе делайте это так быстро, ожидайте %time% %time_correct%"),
-                "Сообщение для игрока, если у него задержка на выполение ивент", "%time% - выводит число секунд", "%time_correct% - выводит корректный таймер").get();
-        this.permissionDenyMessage = new JOption<>("Messages.Permission.Deny",
+                "Сообщение для игрока, если у него задержка на выполение ивент",
+                "%time% - выводит число секунд",
+                "%time_correct% - выводит корректный таймер").read(activeRegion.getConfig());
+        this.permissionDenyMessage = new JOption<>("Active.Events."+ eventHandler.name()+".Messages.Permission.Deny",
                 (jyml, s, langMessage1) -> langMessage1,
                 new LangMessage(activeRegion.plugin(), "&cУ Вас нет права на это"),
-                "Сообщение для игрока, если у нет права на выполение ивента").get();
-        this.actionMessage = new JOption<>("Messages.Action.Allow",
+                "Сообщение для игрока, если у нет права на выполение ивента").read(activeRegion.getConfig());
+        this.actionMessage = new JOption<>("Active.Events."+ eventHandler.name()+".Messages.Action.Allow",
                 (jyml, s, langMessage1) -> langMessage1,
-                new LangMessage(activeRegion.plugin(), "&cВыполение ивента &6" + events.getName()),
-                "Сообщение при выполнении ивента").get();
+                new LangMessage(activeRegion.plugin(), "&cВыполение ивента &6" + eventHandler.getName()),
+                "Сообщение при выполнении ивента").read(activeRegion.getConfig());
     }
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator, boolean cancelled) {
-        this(activeRegion, events, permission, langMessage, cooldown, manipulator);
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler, JPermission permission, LangMessage langMessage, int cooldown, ActionManipulator manipulator, boolean cancelled) {
+        this(activeRegion, eventHandler, permission, langMessage, cooldown, manipulator);
         this.setCancelled(cancelled);
     }
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events) {
-        this(activeRegion, events, null, null, -1, new ActionManipulator(), false);
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler) {
+        this(activeRegion, eventHandler, null, null, -1, new ActionManipulator(), false);
     }
 
-    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull Events events, @NotNull ActionManipulator manipulator) {
-        this(activeRegion, events, null, null, -1, manipulator, false);
+    public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler, @NotNull ActionManipulator manipulator) {
+        this(activeRegion, eventHandler, null, null, -1, manipulator, false);
     }
 
     public ActiveRegion getActiveRegion() {
         return activeRegion;
     }
 
-    public Events getEvents() {
-        return events;
+    public EventHandler getEventHandler() {
+        return eventHandler;
     }
 
     public boolean isCancelled() {
@@ -164,7 +166,7 @@ public class EventAction implements IPlaceholder, IEditable {
                 .replace(Placeholders.PLACEHOLDER_EVENTS_CANCELLED, LangManager.getBoolean(this.cancelled))
                 .replace(Placeholders.PLACEHOLDER_EVENTS_LANGKEY, this.langMessage == null ? "Нет" : this.langMessage.getRaw())
                 .replace(Placeholders.PLACEHOLDER_EVENTS_PERMISSION, this.permission == null ? "Нет" : this.permission.getName())
-                .replace(Placeholders.PLACEHOLDER_EVENTS_NAME, this.events.getName())
+                .replace(Placeholders.PLACEHOLDER_EVENTS_NAME, this.eventHandler.getName())
                 ;
     }
 }

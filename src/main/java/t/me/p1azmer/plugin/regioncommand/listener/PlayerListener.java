@@ -34,9 +34,10 @@ import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
 
-import static t.me.p1azmer.plugin.regioncommand.api.type.Events.*;
+import static t.me.p1azmer.plugin.regioncommand.api.type.EventHandler.*;
 
 public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECODE FOR NEW COOLDOWNER AND REPLACE PLAYER TO LIVING ENTITY
+    //FIXME - Изменить отмену ивентов. Пример брать из @onRegenHp
 
     private final RegionManager manager;
 
@@ -1102,6 +1103,8 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                 if (region != null) {
                     ActiveRegion activeRegion = region.getActiveRegion();
 
+                    boolean cancelled = activeRegion.getCancelled().getOrDefault(REGEN_HP, false);
+
                     EventAction eventAction = activeRegion.getEventActionByEvent(REGEN_HP);
                     if (eventAction != null) {
                         if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR)) {
@@ -1133,16 +1136,13 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 .replaceAll("%cooldown_time%", (Cooldown.hasCooldown(player, timerEventActionKey) ? t.me.p1azmer.aves.engine.utils.TimeUtil.formatTimeLeft(Cooldown.getSecondCooldown(player, timerEventActionKey)) : "0"))
                         );
 
-                        if (REGEN_HP.cancelledEvents.contains(player)) {
-                            event.setCancelled(true);
-                        }
-                        if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                            event.setCancelled(true);
-                        }
-                    }
+                        cancelled = REGEN_HP.cancelledEvents.contains(player);
 
-                    boolean cancelled = activeRegion.getCancelled().getOrDefault(REGEN_HP, false);
-                    event.setCancelled(cancelled);
+                        if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
+                            if (eventAction.isCancelled()) {
+                                cancelled = true;
+                            }
+                    }
 
                     int time = activeRegion.getCooldowns().getOrDefault(REGEN_HP, -1);
                     if (time > 0) {
@@ -1155,10 +1155,11 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
 
                     PlayerRegenHPInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRegenHPInRegionEvent(player, region));
                     if (customEventCaller.isCancelled()) {
-                        event.setCancelled(true);
+                        cancelled = true;
                     }
                     if (eventAction != null && eventAction.getActionMessage() != null)
                         eventAction.getActionMessage().send(player);
+                    event.setCancelled(cancelled);
                 }
             }
         }
@@ -1215,6 +1216,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                     boolean cancelled = activeRegion.getCancelled().getOrDefault(REGEN_HUNGER, false);
                     event.setCancelled(cancelled);
 
+
                     int time = activeRegion.getCooldowns().getOrDefault(REGEN_HUNGER, -1);
                     if (time > 0) {
                         if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + REGEN_HUNGER.name(), time)) {
@@ -1236,7 +1238,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
     }
 
     /**
-     * cast for @Events.USE, Events.OPEN_CHEST, Events.OPEN_ENDER_CHEST
+     * cast for @EventHandler.USE, EventHandler.OPEN_CHEST, EventHandler.OPEN_ENDER_CHEST
      */
     @EventHandler
     public void onUse(PlayerInteractEvent event) {

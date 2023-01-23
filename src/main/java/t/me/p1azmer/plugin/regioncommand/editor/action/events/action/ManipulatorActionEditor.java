@@ -19,7 +19,7 @@ import t.me.p1azmer.plugin.regioncommand.Placeholders;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.ActiveRegion;
 import t.me.p1azmer.plugin.regioncommand.api.EventAction;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.editor.EditorType;
 
@@ -64,24 +64,24 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
 
         EditorInput<EventAction, EditorType> actionInput = (player, eventAction, type, event) -> {
             String msg = event.getMessage();
-            Events events = eventAction.getEvents();
+            EventHandler eventHandler = eventAction.getEventHandler();
             ActiveRegion activeRegion = eventAction.getActiveRegion();
             if (type.equals(EditorType.ACTION_CREATE_CONDITION)) {
                 ActionManipulator manipulator = new ActionManipulator();
-                if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
-                    manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
+                if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
+                    manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
                 manipulator.getActions().put("default", new ActionSection("default", List.of(msg), "", new ArrayList<>()));
             } else if (type.equals(EditorType.ACTION_CREATE_EXECUTOR)) {
                 ActionManipulator manipulator = new ActionManipulator();
-                if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
-                    manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
+                if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
+                    manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
                 manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), "", List.of(msg)));
             } else if (type.equals(EditorType.ACTION_CREATE_FAIL)) {
                 ActionManipulator manipulator = new ActionManipulator();
-                if (activeRegion.getEventActionByEvent(events) != null && activeRegion.getEventActionByEvent(events).getManipulator() != null) {
-                    manipulator = activeRegion.getEventActionByEvent(events).getManipulator();
+                if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
+                    manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
                 manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), msg, new ArrayList<>()));
             }
@@ -92,7 +92,7 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
 //        EditorInput<EventAction, EditorType> eventsInput = (player, eventAction, type, event) -> {
 //            String msg = event.getMessage();
 //            if (type.equals(EditorType.ACTION_CREATE_CONDITION) || type.equals(EditorType.ACTION_CREATE_EXECUTOR) || type.equals(EditorType.ACTION_CREATE_FAIL)) {
-//                Events events = CollectionsUtil.getEnum(msg, Events.class);
+//                EventHandler events = CollectionsUtil.getEnum(msg, EventHandler.class);
 //                if (events == null) {
 //                    EditorManager.error(player, "Ивент обработчик не найден!");
 //                    return false;
@@ -114,17 +114,17 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
                 if (type2.equals(EditorType.ACTION_CREATE_CONDITION)) {
                     EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
-                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
+                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(EventHandler.class), false);
                     player.closeInventory();
                 } else if (this.selectType.equals(ActionSelector.ActionSelectType.EXECUTORS)) {
                     EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
-                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
+                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(EventHandler.class), false);
                     player.closeInventory();
                 } else if (this.selectType.equals(ActionSelector.ActionSelectType.FAIL)) {
                     EditorManager.startEdit(player, parent, type2, actionInput);
                     EditorManager.tip(player, Lang.EDITOR_WRITE_EVENTS.getDefaultText());
-                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(Events.class), false);
+                    EditorManager.suggestValues(player, CollectionsUtil.getEnumsList(EventHandler.class), false);
                     player.closeInventory();
                 } else if (type2.equals(EditorType.EVENTS_CHANGE_CANCELLED)) {
                     EditorManager.startEdit(player, parent, type2, actionInput);

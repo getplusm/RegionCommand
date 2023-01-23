@@ -10,7 +10,7 @@ import t.me.p1azmer.aves.engine.actions.parameter.value.ParameterValueNumber;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 
 public class TimerEventAction extends AbstractActionExecutor {
 
@@ -35,8 +35,8 @@ public class TimerEventAction extends AbstractActionExecutor {
         long timeValue = (long) time.getValue(0D);
         if (timeValue <= 0L) return;
 
-        Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
-        if (events == null) {
+        EventHandler eventHandler = CollectionsUtil.getEnum(name.toUpperCase(), EventHandler.class);
+        if (eventHandler == null) {
             return;
         }
         Region region = RegionAPI.PLUGIN.getManager().getRegion(player.getLocation(), 1);

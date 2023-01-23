@@ -9,7 +9,7 @@ import t.me.p1azmer.aves.engine.actions.parameter.ParameterResult;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.api.RegionAPI;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 
 public class CancelledEventAction extends AbstractActionExecutor {
     public CancelledEventAction() {
@@ -23,8 +23,8 @@ public class CancelledEventAction extends AbstractActionExecutor {
         if (name == null) {
             return;
         }
-        Events events = CollectionsUtil.getEnum(name.toUpperCase(), Events.class);
-        if (events == null) {
+        EventHandler eventHandler = CollectionsUtil.getEnum(name.toUpperCase(), EventHandler.class);
+        if (eventHandler == null) {
             return;
         }
 
@@ -34,6 +34,6 @@ public class CancelledEventAction extends AbstractActionExecutor {
         if (region == null) {
             return;
         }
-        events.cancelledCustomEvent(player, region, true);
+        eventHandler.cancelledCustomEvent(player, region, true);
     }
 }

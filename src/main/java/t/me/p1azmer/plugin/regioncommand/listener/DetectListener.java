@@ -3,7 +3,6 @@ package t.me.p1azmer.plugin.regioncommand.listener;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -26,7 +25,7 @@ import t.me.p1azmer.plugin.regioncommand.api.events.cuboid.PlayerLeaveCuboidEven
 import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerEnterRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerLeaveRegionEvent;
 import t.me.p1azmer.plugin.regioncommand.api.events.region.movement.PlayerMoveInRegionEvent;
-import t.me.p1azmer.plugin.regioncommand.api.type.Events;
+import t.me.p1azmer.plugin.regioncommand.api.type.EventHandler;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 
 public class DetectListener extends AbstractListener<RegPlugin> {
@@ -41,7 +40,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
 
     // register custom events (like enter cuboidRegion)
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void detectCuboidEvent(@NotNull PlayerMoveEvent event) {
         Location from = event.getFrom();
         Location to = event.getTo();
@@ -78,14 +77,14 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         }
     }
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void onRegionEnter(@NotNull PlayerEnterRegionEvent event) {
         if (event.isCancelled()) return;
 
         Player player = (Player) event.getEntity();
         Region region = event.getRegion();
         ActiveRegion activeRegion = region.getActiveRegion();
-        EventAction eventAction = activeRegion.getEventActionByEvent(Events.ENTER);
+        EventAction eventAction = activeRegion.getEventActionByEvent(EventHandler.ENTER);
         if (eventAction != null) {
             if (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))
                 if (eventAction.getPermission() != null && !player.hasPermission(eventAction.getPermission())) {
@@ -94,7 +93,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         }
     }
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void detectCuboidEventTP(@NotNull PlayerTeleportEvent event) {
         Location from = event.getFrom();
         Location to = event.getTo();
@@ -130,7 +129,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
 
     // detect and cancelled spigot events
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void onInteractWithoutRegion(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         Location from = player.getLocation();
@@ -143,7 +142,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         }
     }
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void onLoginInRegion(PlayerLoginEvent event) {
         Player player = event.getPlayer();
         Location location = player.getLocation();
@@ -166,7 +165,7 @@ public class DetectListener extends AbstractListener<RegPlugin> {
         }
     }
 
-    @EventHandler
+    @org.bukkit.event.EventHandler
     public void onMoveInCancelledRegion(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Location from = event.getFrom();

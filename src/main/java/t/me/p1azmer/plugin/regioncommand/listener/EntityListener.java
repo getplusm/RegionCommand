@@ -23,8 +23,8 @@ import t.me.p1azmer.plugin.regioncommand.config.Lang;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 import t.me.p1azmer.plugin.regioncommand.utils.action.executors.TimerEventAction;
 
-import static t.me.p1azmer.plugin.regioncommand.api.type.Events.TAKE_DAMAGE_FROM_BLOCK;
-import static t.me.p1azmer.plugin.regioncommand.api.type.Events.TAKE_DAMAGE_FROM_LAVA;
+import static t.me.p1azmer.plugin.regioncommand.api.type.EventHandler.TAKE_DAMAGE_FROM_BLOCK;
+import static t.me.p1azmer.plugin.regioncommand.api.type.EventHandler.TAKE_DAMAGE_FROM_LAVA;
 
 public class EntityListener extends AbstractListener<RegPlugin> {
 
