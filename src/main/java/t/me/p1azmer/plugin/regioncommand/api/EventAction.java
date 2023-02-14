@@ -65,7 +65,7 @@ public class EventAction implements IPlaceholder, IEditable {
     }
 
     public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler) {
-        this(activeRegion, eventHandler, null, null, -1, new ActionManipulator(), false);
+        this(activeRegion, eventHandler, null, null, -1, null, false);
     }
 
     public EventAction(@NotNull ActiveRegion activeRegion, @NotNull EventHandler eventHandler, @NotNull ActionManipulator manipulator) {

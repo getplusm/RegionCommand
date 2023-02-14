@@ -1,6 +1,5 @@
 package t.me.p1azmer.plugin.regioncommand.utils;
 
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -8,7 +7,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import t.me.p1azmer.api.PlazmerCore;
 import t.me.p1azmer.aves.engine.api.manager.IPlaceholder;
 import t.me.p1azmer.aves.engine.utils.EffectUtil;
 import t.me.p1azmer.plugin.regioncommand.Placeholders;
@@ -19,6 +17,9 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 
+/**
+ * Main instance for cuboid region
+ */
 public class CuboidRegion implements IPlaceholder {
 
     private int xMin;

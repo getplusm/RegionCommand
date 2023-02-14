@@ -409,7 +409,6 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
 
                         PlayerLMBInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLMBInRegionEvent(player, region));
                         if (customEventCaller.isCancelled()) {
-                            event.setCancelled(true);
                             return;
                         }
                         ActiveRegion activeRegion = region.getActiveRegion();
@@ -420,12 +419,10 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 JPermission permission = eventAction.getPermission();
                                 if (permission != null && !player.hasPermission(permission)) {
                                     plugin.getMessage(Lang.Permission_Event_LMB).send(player);
-                                    event.setCancelled(true);
                                     return;
                                 }
                             }
                             if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                event.setCancelled(true);
                                 return;
                             }
                             int time = eventAction.getCooldown();
@@ -1261,8 +1258,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                     if (permission != null && !player.hasPermission(permission)) {
                                         if (eventAction.getPermissionDenyMessage() != null)
                                             eventAction.getPermissionDenyMessage().send(player);
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 }
@@ -1276,8 +1272,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                                     .replace("%time_correct%", TimeUtil.leftTime(time))
                                                     .send(player);
                                         }
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 eventAction.getManipulator().processAll(player);
@@ -1288,36 +1283,28 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 );
 
                                 if (OPEN_CHEST.cancelledEvents.contains(player)) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                                 if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                             }
 
                             boolean cancelled = activeRegion.getCancelled().getOrDefault(OPEN_CHEST, false);
                             event.setCancelled(cancelled);
-                            if (cancelled) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
-                            }
 
                             int time = activeRegion.getCooldowns().getOrDefault(OPEN_CHEST, -1);
                             if (time > 0) {
                                 if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + OPEN_CHEST.name(), time)) {
                                     // TODO message
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                     return;
                                 }
                             }
 
                             PlayerOpenChestInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerOpenChestInRegionEvent(player, region));
                             if (customEventCaller.isCancelled()) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
                             if (eventAction != null && eventAction.getActionMessage() != null)
                                 eventAction.getActionMessage().send(player);
@@ -1333,8 +1320,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                     if (permission != null && !player.hasPermission(permission)) {
                                         if (eventAction.getPermissionDenyMessage() != null)
                                             eventAction.getPermissionDenyMessage().send(player);
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 }
@@ -1348,8 +1334,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                                     .replace("%time_correct%", TimeUtil.leftTime(time))
                                                     .send(player);
                                         }
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 eventAction.getManipulator().processAll(player);
@@ -1360,36 +1345,31 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 );
 
                                 if (OPEN_ENDER_CHEST.cancelledEvents.contains(player)) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                                 if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                             }
 
                             boolean cancelled = activeRegion.getCancelled().getOrDefault(OPEN_ENDER_CHEST, false);
                             event.setCancelled(cancelled);
                             if (cancelled) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
 
                             int time = activeRegion.getCooldowns().getOrDefault(OPEN_ENDER_CHEST, -1);
                             if (time > 0) {
                                 if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + OPEN_ENDER_CHEST.name(), time)) {
                                     // TODO message
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                     return;
                                 }
                             }
 
                             PlayerOpenEnderChestInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerOpenEnderChestInRegionEvent(player, region));
                             if (customEventCaller.isCancelled()) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
                             if (eventAction != null && eventAction.getActionMessage() != null)
                                 eventAction.getActionMessage().send(player);
@@ -1433,36 +1413,31 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                     );
 
                                     if (LEFT_USE_ON_SHIFT.cancelledEvents.contains(player)) {
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                     }
                                     if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                     }
                                 }
 
                                 boolean cancelled = activeRegion.getCancelled().getOrDefault(LEFT_USE_ON_SHIFT, false);
                                 event.setCancelled(cancelled);
                                 if (cancelled) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
 
                                 int time = activeRegion.getCooldowns().getOrDefault(LEFT_USE_ON_SHIFT, -1);
                                 if (time > 0) {
                                     if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + LEFT_USE_ON_SHIFT.name(), time)) {
                                         // TODO message
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 }
 
                                 PlayerLeftUseOnShiftInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeftUseOnShiftInRegionEvent(player, region));
                                 if (customEventCaller.isCancelled()) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                                 if (eventAction != null && eventAction.getActionMessage() != null)
                                     eventAction.getActionMessage().send(player);
@@ -1503,36 +1478,31 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                     );
 
                                     if (RIGHT_USE_ON_SHIFT.cancelledEvents.contains(player)) {
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                     }
                                     if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                     }
                                 }
 
                                 boolean cancelled = activeRegion.getCancelled().getOrDefault(RIGHT_USE_ON_SHIFT, false);
                                 event.setCancelled(cancelled);
                                 if (cancelled) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
 
                                 int time = activeRegion.getCooldowns().getOrDefault(RIGHT_USE_ON_SHIFT, -1);
                                 if (time > 0) {
                                     if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + RIGHT_USE_ON_SHIFT.name(), time)) {
                                         // TODO message
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 }
 
                                 PlayerRightUseOnShiftInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRightUseOnShiftInRegionEvent(player, region));
                                 if (customEventCaller.isCancelled()) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                                 if (eventAction != null && eventAction.getActionMessage() != null)
                                     eventAction.getActionMessage().send(player);
@@ -1553,8 +1523,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                     if (permission != null && !player.hasPermission(permission)) {
                                         if (eventAction.getPermissionDenyMessage() != null)
                                             eventAction.getPermissionDenyMessage().send(player);
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 }
@@ -1568,8 +1537,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                                     .replace("%time_correct%", TimeUtil.leftTime(time))
                                                     .send(player);
                                         }
-                                        event.setUseInteractedBlock(Event.Result.DENY);
-                                        event.setUseItemInHand(Event.Result.DENY);
+                                        event.setCancelled(true);
                                         return;
                                     }
                                 eventAction.getManipulator().processAll(player);
@@ -1580,36 +1548,31 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 );
 
                                 if (LEFT_USE.cancelledEvents.contains(player)) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                                 if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                 }
                             }
 
                             boolean cancelled = activeRegion.getCancelled().getOrDefault(LEFT_USE, false);
                             event.setCancelled(cancelled);
                             if (cancelled) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
 
                             int time = activeRegion.getCooldowns().getOrDefault(LEFT_USE, -1);
                             if (time > 0) {
                                 if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + LEFT_USE.name(), time)) {
                                     // TODO message
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                     return;
                                 }
                             }
 
                             PlayerLeftUseInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerLeftUseInRegionEvent(player, region));
                             if (customEventCaller.isCancelled()) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
                             if (eventAction != null && eventAction.getActionMessage() != null)
                                 eventAction.getActionMessage().send(player);
@@ -1623,8 +1586,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                 if (permission != null && !player.hasPermission(permission)) {
                                     if (eventAction.getPermissionDenyMessage() != null)
                                         eventAction.getPermissionDenyMessage().send(player);
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                     return;
                                 }
                             }
@@ -1638,8 +1600,7 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                                                 .replace("%time_correct%", TimeUtil.leftTime(time))
                                                 .send(player);
                                     }
-                                    event.setUseInteractedBlock(Event.Result.DENY);
-                                    event.setUseItemInHand(Event.Result.DENY);
+                                    event.setCancelled(true);
                                     return;
                                 }
                             eventAction.getManipulator().processAll(player);
@@ -1650,36 +1611,28 @@ public class PlayerListener extends AbstractListener<RegPlugin> { // TODO: RECOD
                             );
 
                             if (RIGHT_USE.cancelledEvents.contains(player)) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
                             if (eventAction.isCancelled() && (!player.hasPermission(Perm.REGION_BYPASS) || !player.getGameMode().equals(GameMode.SPECTATOR))) {
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                             }
                         }
 
                         boolean cancelled = activeRegion.getCancelled().getOrDefault(RIGHT_USE, false);
                         event.setCancelled(cancelled);
-                        if (cancelled) {
-                            event.setUseInteractedBlock(Event.Result.DENY);
-                            event.setUseItemInHand(Event.Result.DENY);
-                        }
 
                         int time = activeRegion.getCooldowns().getOrDefault(RIGHT_USE, -1);
                         if (time > 0) {
                             if (Cooldown.hasOrAddCooldown(player, "REGION_" + region.getId() + "_" + RIGHT_USE.name(), time)) {
                                 // TODO message
-                                event.setUseInteractedBlock(Event.Result.DENY);
-                                event.setUseItemInHand(Event.Result.DENY);
+                                event.setCancelled(true);
                                 return;
                             }
                         }
 
                         PlayerRightUseInRegionEvent customEventCaller = t.me.p1azmer.api.Events.callSyncAndJoin(new PlayerRightUseInRegionEvent(player, region));
                         if (customEventCaller.isCancelled()) {
-                            event.setUseInteractedBlock(Event.Result.DENY);
-                            event.setUseItemInHand(Event.Result.DENY);
+                            event.setCancelled(true);
                         }
                         if (eventAction != null && eventAction.getActionMessage() != null)
                             eventAction.getActionMessage().send(player);

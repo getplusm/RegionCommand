@@ -85,7 +85,7 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
             String finalPath = finalPath2 + id + ".";
             EventHandler event = CollectionsUtil.getEnum(id, EventHandler.class);
             if (event == null) {
-                throw new IllegalArgumentException("Invalid event enum at " + region.getId() + " region!");
+                throw new IllegalArgumentException("Invalid event enum at " + region.getId() + " region! Request a '"+id+"', but he is not found!");
             }
             JPermission permission = null;
             String perm = cfg.getString(finalPath + "Permission", null);
@@ -95,7 +95,7 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
             boolean canceled = cfg.getBoolean(finalPath + "Cancelled", false);
             this.cancelled.put(event, canceled);
 
-            ActionManipulator manipulator = new ActionManipulator(cfg, finalPath + "Action");
+            ActionManipulator manipulator = new ActionManipulator(region.plugin(), cfg, finalPath + "Action");
 
             LangMessage langMessage = new LangMessage(region.plugin(), cfg.getString(finalPath + "Cooldown.Message", "&cДействие невозможно выполнять так часто, ожидайте"));
             EventAction eventAction = new EventAction(this, event, permission, langMessage, time, manipulator, canceled);
@@ -160,9 +160,7 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
                 this.config.remove(finalPath + "Cooldown.Message");
             if (eventAction.getManipulator() != null) {
                 for (ActionSection section : eventAction.getManipulator().getActions().values()) {
-                    this.config.set(finalPath + "Action." + section.getId() + ".Conditions.List", section.getConditions());
-                    this.config.set(finalPath + "Action." + section.getId() + ".Conditions.Fail_Actions", section.getConditionFailActions());
-                    this.config.set(finalPath + "Action." + section.getId() + ".Action_Executors", section.getActionExecutors());
+                    section.save(this.config, finalPath + "Action.");
                 }
             }
 
@@ -207,15 +205,15 @@ public class ActiveRegion extends AbstractConfigHolder<RegPlugin> implements IPl
             this.editor.clear();
             this.editor = null;
         }
-        if (this.eventHandlerListMenu != null){
+        if (this.eventHandlerListMenu != null) {
             this.eventHandlerListMenu.clear();
             this.eventHandlerListMenu = null;
         }
     }
 
-    public void deleteEventAction(EventAction event){
+    public void deleteEventAction(EventAction event) {
         this.eventActions.remove(event);
-        this.config.set("Active.Events."+event.getEventHandler().name().toUpperCase(), "");
+        this.config.set("Active.Events." + event.getEventHandler().name().toUpperCase(), "");
         this.config.saveChanges();
     }
 }

@@ -67,23 +67,23 @@ public class ManipulatorActionEditor extends AbstractEditorMenuAuto<RegPlugin, E
             EventHandler eventHandler = eventAction.getEventHandler();
             ActiveRegion activeRegion = eventAction.getActiveRegion();
             if (type.equals(EditorType.ACTION_CREATE_CONDITION)) {
-                ActionManipulator manipulator = new ActionManipulator();
+                ActionManipulator manipulator = new ActionManipulator(plugin);
                 if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection("default", List.of(msg), "", new ArrayList<>()));
+                manipulator.getActions().put("default", new ActionSection("default", List.of(msg), new ArrayList<>(), "", new ArrayList<>()));
             } else if (type.equals(EditorType.ACTION_CREATE_EXECUTOR)) {
-                ActionManipulator manipulator = new ActionManipulator();
+                ActionManipulator manipulator = new ActionManipulator(plugin);
                 if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), "", List.of(msg)));
+                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), List.of(msg), "", new ArrayList<>()));
             } else if (type.equals(EditorType.ACTION_CREATE_FAIL)) {
-                ActionManipulator manipulator = new ActionManipulator();
+                ActionManipulator manipulator = new ActionManipulator(plugin);
                 if (activeRegion.getEventActionByEvent(eventHandler) != null && activeRegion.getEventActionByEvent(eventHandler).getManipulator() != null) {
                     manipulator = activeRegion.getEventActionByEvent(eventHandler).getManipulator();
                 }
-                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), msg, new ArrayList<>()));
+                manipulator.getActions().put("default", new ActionSection("default", new ArrayList<>(), new ArrayList<>(), msg, new ArrayList<>()));
             }
             eventAction.getActiveRegion().save();
             return true;

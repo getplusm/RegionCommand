@@ -32,7 +32,7 @@ public class ManipulatorActionListEditor extends AbstractEditorMenuAuto<RegPlugi
                 else this.onItemClickDefault(player, type2);
             } else if (type instanceof EditorType type2) {
                 if (type2.equals(EditorType.MANIPULATOR_CREATE_ACTION)) {
-                    this.parent.getActionSelector(new ActionSection("default", new ArrayList<>(), "", new ArrayList<>())).open(player, 1);
+                    this.parent.getActionSelector(new ActionSection("default", new ArrayList<>(), new ArrayList<>(), "", new ArrayList<>())).open(player, 1);
                 }
             }
         };

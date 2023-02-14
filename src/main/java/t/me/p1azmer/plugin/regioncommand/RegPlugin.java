@@ -34,18 +34,18 @@ public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolde
         this.manager = new RegionManager(this);
         this.manager.setup();
 
-        this.getActionsManager().registerParameter(new MaterialParameter());
+        this.getActionsManager().registerParam(new MaterialParameter());
 
-        this.getActionsManager().registerActionExecutor(new CancelledEventAction());
-        this.getActionsManager().registerActionExecutor(new TimerEventAction());
+        this.getActionsManager().registerExecutor(new CancelledEventAction(this));
+        this.getActionsManager().registerExecutor(new TimerEventAction(this));
         /**
          * Automatically restore block when destroyed
          * Example: name: STONE,COBBLESTONE; ~type: BEDROCK (replaced)
          */
-        this.getActionsManager().registerActionExecutor(new BlockRestoreAction());
+        this.getActionsManager().registerExecutor(new BlockRestoreAction(this));
 
-        this.getActionsManager().registerConditionValidator(new TimerCooldownCondition());
-        this.getActionsManager().registerConditionValidator(new MaterialCondition());
+        this.getActionsManager().registerCondition(new TimerCooldownCondition(this));
+        this.getActionsManager().registerCondition(new MaterialCondition(this));
 
     }
 
@@ -81,7 +81,7 @@ public final class RegPlugin extends NexPlugin<RegPlugin> implements EditorHolde
 
     @Override
     public void registerPermissions() {
-
+        this.registerPermissions(Perm.class);
     }
 
     public RegionManager getManager() {

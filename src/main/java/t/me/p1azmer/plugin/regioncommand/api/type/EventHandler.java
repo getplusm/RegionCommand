@@ -182,7 +182,7 @@ public enum EventHandler {
     }
 
     @NotNull
-    public RegionEvents getCustomEvent(Player player, Region region) {
+    public RegionEvents getCustomEvent(LivingEntity player, Region region) {
         return switch (this) {
             case MOVE -> new PlayerMoveInRegionEvent(player, region);
             case LMB -> new PlayerLMBInRegionEvent(player, region);
@@ -239,7 +239,7 @@ public enum EventHandler {
 //        };
 //    }
 
-    public boolean cancelledCustomEvent(Player player, Region region, boolean cancel) {
+    public boolean cancelledCustomEvent(LivingEntity player, Region region, boolean cancel) {
         if (this.cancelledEvents == null)
             this.cancelledEvents = AutoRemovalCollection.newHashSet(20, TimeUnit.MILLISECONDS);
         RegionEvents event = t.me.p1azmer.api.Events.callSyncAndJoin(getCustomEvent(player, region));
@@ -255,11 +255,11 @@ public enum EventHandler {
         return false;
     }
 
-    public void callBlockRestore(Player player, Region region, Material type, long time, Material... materials) {
+    public void callBlockRestore(LivingEntity player, Region region, Material type, long time, Material... materials) {
         callBlockRestore(player, region, type, time, Arrays.stream(materials).toList());
     }
 
-    public void callBlockRestore(Player player, Region region, @Nullable Material type, long time, List<Material> materials) {
+    public void callBlockRestore(LivingEntity player, Region region, @Nullable Material type, long time, List<Material> materials) {
         if (materialsToRestore == null)
             materialsToRestore = new HashMap<>();
         materialsToRestore.put(region, new TripleReturn<>(materials, type, time));

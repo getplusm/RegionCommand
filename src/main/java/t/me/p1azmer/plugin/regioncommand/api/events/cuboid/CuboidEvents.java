@@ -1,6 +1,6 @@
 package t.me.p1azmer.plugin.regioncommand.api.events.cuboid;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,13 +11,13 @@ public abstract class CuboidEvents extends Event implements Cancellable {
 
     private static final HandlerList handlerList = new HandlerList();
 
-    protected Player player;
+    protected LivingEntity entity;
     protected CuboidRegion cuboidRegion;
     protected boolean cancelled;
 
-    public CuboidEvents(Player player, CuboidRegion cuboidRegion){
+    public CuboidEvents(LivingEntity entity, CuboidRegion cuboidRegion){
 
-        this.player = player;
+        this.entity = entity;
         this.cuboidRegion = cuboidRegion;
     }
 
@@ -25,8 +25,8 @@ public abstract class CuboidEvents extends Event implements Cancellable {
         return cuboidRegion;
     }
 
-    public Player getPlayer() {
-        return player;
+    public LivingEntity getEntity() {
+        return entity;
     }
 
     @NotNull

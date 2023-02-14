@@ -1,14 +1,12 @@
 package t.me.p1azmer.plugin.regioncommand.task;
 
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
-import t.me.p1azmer.api.PlazmerCore;
 import t.me.p1azmer.api.returns.TripleReturn;
 import t.me.p1azmer.api.util.LocationUtil;
-import t.me.p1azmer.aves.engine.api.task.AbstractTask;
+import t.me.p1azmer.aves.engine.api.server.AbstractTask;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.manager.RegionManager;
 
@@ -29,13 +27,13 @@ public class RestoreBlockTask extends AbstractTask<RegPlugin> {
     }
 
     @Override
-    public void stop() {
+    public boolean stop() {
         if (this.manager.getCustomListener().getBlockRestores() != null)
             this.manager.getCustomListener().getBlockRestores().forEach(pair -> {
                 pair.second().getBlock().setType(pair.first().getType());
                 pair.second().getBlock().setBlockData(pair.first().getBlockData());
             });
-        super.stop();
+        return super.stop();
     }
 
     @Override
@@ -52,11 +50,11 @@ public class RestoreBlockTask extends AbstractTask<RegPlugin> {
 
             AtomicInteger time = this.cache.getOrDefault(location, new AtomicInteger(0));
 
-            PlazmerCore.getParticle().sendPacket(location, 5,
-                    PlazmerCore.getParticle().DUST_COLOR_TRANSITION()
-                            .color(Color.RED, Color.BLUE, 1)
-                            .packet(true, location.clone().add(0.5, 0.5, 0.5))
-            );
+//            PlazmerCore.getParticle().sendPacket(location, 5,
+//                    PlazmerCore.getParticle().DUST_COLOR_TRANSITION()
+//                            .color(Color.RED, Color.BLUE, 1)
+//                            .packet(true, location.clone().add(0.5, 0.5, 0.5))
+//            );
 
             if (time.incrementAndGet() >= respawnTime) {
 

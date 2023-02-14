@@ -2,7 +2,7 @@ package t.me.p1azmer.plugin.regioncommand.task;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import t.me.p1azmer.aves.engine.api.task.AbstractTask;
+import t.me.p1azmer.aves.engine.api.server.AbstractTask;
 import t.me.p1azmer.plugin.regioncommand.RegPlugin;
 import t.me.p1azmer.plugin.regioncommand.api.Region;
 import t.me.p1azmer.plugin.regioncommand.utils.CuboidRegion;
