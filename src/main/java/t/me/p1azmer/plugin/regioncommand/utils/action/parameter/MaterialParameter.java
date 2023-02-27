@@ -7,6 +7,7 @@ import t.me.p1azmer.aves.engine.actions.params.IAutoValidated;
 import t.me.p1azmer.aves.engine.actions.params.IParamValue;
 import t.me.p1azmer.aves.engine.actions.params.defaults.IParamBoolean;
 import t.me.p1azmer.aves.engine.utils.CollectionsUtil;
+import t.me.p1azmer.aves.engine.utils.StringUtil;
 
 import java.util.Set;
 
@@ -30,6 +31,6 @@ public class MaterialParameter extends IParamBoolean implements IAutoValidated {
     public void autoValidate(@NotNull Entity entity, @NotNull Set<Entity> set, @NotNull IParamValue result) {
         String name = result.getString(null);
         if (name == null) return;
-        result.setBoolean(CollectionsUtil.getEnum(name, Material.class) != null);
+        result.setBoolean(StringUtil.getEnum(name, Material.class).orElse(null) != null);
     }
 }
