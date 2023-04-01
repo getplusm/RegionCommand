@@ -23,14 +23,6 @@ repositories {
             password 'AOIMD2o8aiund2a'
         }
     }
-
-    maven {
-        url = uri("https://maven.pkg.github.com/getplusm/RegionCommand")
-        credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("getplusm")
-            password = project.findProperty("gpr.key") ?: System.getenv("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")
-        }
-    }
 }
 
 dependencies {
